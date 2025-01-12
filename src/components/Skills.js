@@ -45,7 +45,7 @@ const skills = [
 
 const Skills = () => {
   return( 
-  <div className='section' id='services'>
+  <div className='section' id='skills'>
   <div className='container mx-auto'>
     <motion.div     variants = {fadeIn('left',0.5)}
               initial='hidden'

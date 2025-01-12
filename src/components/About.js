@@ -22,11 +22,11 @@ const About = () => {
           viewport={{once:false,amount:0.3}} 
           className="flex-1">
             <h2 className=" h2 text-accent">About me.</h2>
-            <h3 className="h3 mb-4">
+            <h3 className="h3 mb-4 lg:w-[900px]">
               I am a web developer with a passion for creating visually
               appealing and user-friendly websites.
             </h3> 
-            <p className="mb-6">
+            <p className="mb-6 lg:w-[870px]">
             Driven by a passion for technology and design, I create websites that are both visually appealing and highly functional. My goal is to blend creativity with usability, delivering seamless experiences for users.
             </p>
             <div className="flex gap-x-6 lg:gap-x-10 mb-12">

@@ -39,7 +39,7 @@ const Banner = () => {
          initial="hidden"
           whileInView={'show'}
           viewport={{once: false,amount:0.7}}
-           className='mb-8 max-w-lg mx-auto lg:mx-0'>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ad totam non quae voluptates repellat. Enim 
+           className='mb-8 max-w-lg mx-auto lg:mx-0'>Passionate about crafting visually engaging and user-centric websites that combine creativity with functionality. 
             </motion.p>
 <motion.div
 variants={fadeIn('up',0.6)}

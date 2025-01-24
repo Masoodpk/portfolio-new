@@ -19,7 +19,7 @@ const Nav = () => {
   <BiHomeAlt />
 </Link>
 <Link 
-  to="home" 
+  to="about" 
   activeClass="active" 
   smooth={true} 
   offset={-200} 
@@ -28,7 +28,7 @@ const Nav = () => {
             <BiUser />
           </Link>
           <Link 
-  to="home" 
+  to="skills" 
   activeClass="active" 
   smooth={true} 
   offset={-200} 
@@ -37,7 +37,7 @@ const Nav = () => {
             <BsClipboardData />
           </Link>
           <Link 
-  to="home" 
+  to="projects" 
   activeClass="active" 
   smooth={true} 
   offset={-200} 
@@ -46,7 +46,7 @@ const Nav = () => {
             <BsBriefcase />
           </Link>
           <Link 
-  to="home" 
+  to="contact" 
   activeClass="active" 
   smooth={true} 
   offset={-200} 

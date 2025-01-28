@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from "../assets/logo.svg"
+
 
 const Header = () => {
   return <div className='py-8'>
@@ -9,7 +9,9 @@ const Header = () => {
     {/* <img src={logo} alt="" /> */}
     <h1 className='text-[25px] md:text-[32px] lg:text-[40px] '>Masood Pk</h1>
   </a>
-  <button className='btn btn-sm '>Hire Me</button>
+ 
+            <button className="btn btn-sm">Hire Me</button>
+          
 </div>
 </div>
 

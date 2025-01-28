@@ -47,7 +47,7 @@ initial="hidden"
  whileInView={'show'}
  viewport={{once: false,amount:0.7}}
 className='flex max-w-max gap-x-6 items-center mb-12 mx-auto lg:mx-0'>
-  <button className='btn btn-lg'>Contact me</button>
+ <a href="#contact"><button className='btn btn-lg'>Contact me</button></a> 
   <a href="#" className='text-gradient btn-link'>My Portfolio</a>
 </motion.div>
 <motion.div 
@@ -56,9 +56,29 @@ initial="hidden"
  whileInView={'show'}
  viewport={{once: false,amount:0.7}}
 className='flex text-[20px] gap-x-6 max-w-max mx-auto lg:mx-0'>
-  <a href="#"><FaLinkedin/></a>
-  <a href="#"><FaGithub/></a>
-  <a href="#"><MdEmail/></a>
+  <a
+    href="https://www.linkedin.com/in/masood-pk-076bb4297/"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaLinkedin />
+  </a>
+  <a
+    href="https://github.com/masoodpk"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaGithub />
+  </a>
+
+  {/* Email */}
+  <a
+  href="https://mail.google.com/mail/?view=cm&fs=1&to=masoodpk555@gmail.com"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <MdEmail />
+</a>
 </motion.div>
       </div>
       <motion.div

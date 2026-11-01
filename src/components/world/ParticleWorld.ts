@@ -50,6 +50,7 @@ const vertexShader = /* glsl */ `
   varying float vFace;
   varying float vTouch;
   varying float vShade;
+  varying float vSpark;
 
   float w(float s, float i) { return max(0.0, 1.0 - abs(s - i)); }
 
@@ -84,8 +85,10 @@ const vertexShader = /* glsl */ `
     p += normalize(away + 1e-5) * uPointerStrength * push * push * 0.22 * (1.0 - face);
 
     // Hero portrait: darker parts of the photo get bigger dots (a halftone).
-    // On dark paper the dots are drawn a touch larger so the face carries.
-    float portraitSize = mix(1.0, (0.35 + aShade * 1.15) * mix(1.0, 1.22, uDark), face) * (1.0 + touch * 0.5);
+    // Dark theme: a few particles are larger "stars" that gently twinkle.
+    float star = step(0.93, aRand.w) * uDark;
+    float twinkle = 0.75 + 0.25 * sin(uTime * (1.2 + aRand.y * 2.0) + aRand.x * 40.0);
+    float portraitSize = mix(1.0, (0.35 + aShade * 1.15) * mix(1.0, 1.15 + star * 0.9, uDark), face) * (1.0 + touch * 0.5);
 
     // Skills stage: the focused category's cluster grows, the rest recede.
     float focus = w(s, 3.0) * uFocusAmount;
@@ -99,6 +102,7 @@ const vertexShader = /* glsl */ `
     vFace = face;
     vTouch = touch;
     vShade = aShade;
+    vSpark = mix(1.0, twinkle, uDark * face) + star * face * 0.4;
     // Colour drifts from cobalt to violet across each shape.
     vTint = smoothstep(-1.1, 1.1, p.x * 0.8 + p.y * 0.6);
     vAlpha = t * mix(1.0, 0.3 + inFocus * 0.7, focus);
@@ -119,22 +123,27 @@ const fragmentShader = /* glsl */ `
   varying float vFace;
   varying float vTouch;
   varying float vShade;
+  varying float vSpark;
 
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float r = length(c);
     if (r > 0.5) discard;
-    float edge = smoothstep(0.5, 0.32, r);
+    float soft = smoothstep(0.5, 0.32, r);
+    // Dark-theme portrait: a crisp bright core with a faint glow, like starlight.
+    float star = max(smoothstep(0.28, 0.1, r), pow(smoothstep(0.5, 0.0, r), 2.0) * 0.4);
+    float edge = mix(soft, star, uDark * vFace);
     vec3 accent = mix(uColor, uColor2, vTint);
     // Light theme: the portrait is printed in ink with a hint of cobalt.
     // Dark theme: it's lit in the site's cobalt-to-violet, with the brightest
     // parts of the photo (forehead, cheeks, nose) running to warm white.
     vec3 printed = mix(uInk, uColor, 0.18);
-    vec3 lit = mix(accent, uInk, smoothstep(0.35, 1.0, vShade) * 0.75);
+    // Dark theme: white particles, silver in the shadows, bright where it's lit.
+    vec3 lit = uInk * mix(0.68, 1.1, smoothstep(0.1, 0.9, vShade)) * vSpark;
     vec3 color = mix(accent, mix(printed, lit, uDark), vFace);
     // Particles stirred by the cursor flare: into colour on paper, toward
     // white on dark (where the face is already in colour).
-    vec3 flare = mix(accent, uInk, uDark * 0.65);
+    vec3 flare = mix(accent, uInk * 1.15, uDark);
     color = mix(color, flare, clamp(vTouch * 1.6, 0.0, 0.9));
     color = mix(color, uFade, vDepth * uFadeAmount);
     float strength = mix(0.85 - vDepth * 0.5, mix(0.95, 1.0, uDark), vFace);

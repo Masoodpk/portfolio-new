@@ -19,7 +19,8 @@ export function Hero() {
       {/* Shown only when the particle world can't run (reduced motion, no WebGL). */}
       <StaticGlobe className="pointer-events-none absolute right-[-10vw] top-1/2 hidden w-[44vw] max-w-[38rem] -translate-y-1/2 opacity-40 [[data-world=static]_&]:block" />
 
-      <div className="container-page relative flex flex-1 flex-col justify-center py-16 md:py-20">
+      {/* Portrait screens: the particle face fills the top, the text sits below it. */}
+      <div className="container-page relative flex flex-1 flex-col justify-end pb-12 pt-[36svh] md:pb-16 landscape:justify-center landscape:py-16 lg:justify-center lg:py-20">
         <p className="eyebrow animate-fade text-cobalt" style={delay("500ms")}>
           {profile.title}
         </p>

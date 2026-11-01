@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "globe": "node scripts/build-globe-points.mjs",
+    "portrait": "node scripts/build-portrait-points.mjs",
     "og": "node scripts/build-og-images.mjs",
     "icons": "node scripts/build-icons.mjs"
   },

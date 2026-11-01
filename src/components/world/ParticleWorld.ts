@@ -18,7 +18,7 @@ import {
   WebGLRenderer,
   type IUniform,
 } from "three";
-import { clusters, globe, journeyRoad, latLonToVec, seedSphere, typeShape, waveField } from "./shapes";
+import { clusters, globe, journeyRoad, latLonToVec, portrait, portraitPools, seedSphere, typeShape, waveField } from "./shapes";
 import { STAGES, ORIGIN, DESTINATIONS, type StageLayout } from "./stages";
 
 const vertexShader = /* glsl */ `
@@ -29,6 +29,7 @@ const vertexShader = /* glsl */ `
   attribute vec3 aS5;
   attribute vec4 aRand;
   attribute float aGroup;
+  attribute float aShade;
 
   uniform float uStage;
   uniform float uTime;
@@ -65,7 +66,14 @@ const vertexShader = /* glsl */ `
     // Gentle repulsion around the pointer.
     vec3 away = p - uPointer;
     float d = length(away);
-    p += normalize(away + 1e-5) * uPointerStrength * smoothstep(0.38, 0.0, d) * 0.22;
+    // On the portrait it's tighter and uneven, so the cursor stirs the face like dust.
+    float face = w(s, 0.0);
+    float push = smoothstep(mix(0.38, 0.3, face), 0.0, d);
+    push *= push * mix(1.0, 0.5 + aRand.y, face);
+    p += normalize(away + 1e-5) * uPointerStrength * push * mix(0.22, 0.16, face);
+
+    // Hero portrait: darker parts of the photo get bigger dots (a halftone).
+    float portraitSize = mix(1.0, 0.45 + aShade * 1.1, w(s, 0.0));
 
     // Skills stage: the focused category's cluster grows, the rest recede.
     float focus = w(s, 3.0) * uFocusAmount;
@@ -73,8 +81,9 @@ const vertexShader = /* glsl */ `
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = uSize * uPixelRatio * (0.6 + aRand.z * 0.8) * (1.0 + focus * inFocus * 0.7) / -mv.z;
-    vDepth = smoothstep(2.6, 5.4, -mv.z);
+    gl_PointSize = uSize * uPixelRatio * (0.6 + aRand.z * 0.8) * (1.0 + focus * inFocus * 0.7) * portraitSize / -mv.z;
+    // Depth fades points toward the background; the flat portrait keeps its ink.
+    vDepth = smoothstep(2.6, 5.4, -mv.z) * (1.0 - 0.8 * w(s, 0.0));
     // Colour drifts from cobalt to violet across each shape.
     vTint = smoothstep(-1.1, 1.1, p.x * 0.8 + p.y * 0.6);
     vAlpha = t * mix(1.0, 0.3 + inFocus * 0.7, focus);
@@ -130,6 +139,8 @@ export type WorldOptions = {
   initials: string;
   fontFamily: string;
   theme: WorldTheme;
+  /** portrait-points.bin; without it the hero shows a planet */
+  portrait?: Int16Array;
 };
 
 /** Colours read from the page's CSS tokens, so the world follows light/dark. */
@@ -143,6 +154,10 @@ export class ParticleWorld {
   private camera = new PerspectiveCamera(32, 1, 0.1, 60);
   private group = new Group();
   private uniforms: Uniforms;
+  private geometry: BufferGeometry;
+  private count: number;
+  private portraitData: { paper: Int16Array; dark: Int16Array } | null;
+  private portraitDark: boolean | null = null;
   private material: ShaderMaterial;
   private arcUniforms: Uniforms;
   private arcs = new Group();
@@ -176,7 +191,13 @@ export class ParticleWorld {
 
     const count = options.compact ? Math.floor(options.land.length / 2 / 2) : options.land.length / 2;
     const geometry = new BufferGeometry();
-    geometry.setAttribute("position", new BufferAttribute(seedSphere(count), 3));
+    // Hero shape: the portrait when its points loaded, otherwise a seed planet.
+    this.portraitData = options.portrait ? portraitPools(options.portrait) : null;
+    const face = this.portraitData ? portrait(count, options.theme.dark ? this.portraitData.dark : this.portraitData.paper) : null;
+    geometry.setAttribute("position", new BufferAttribute(face?.positions ?? seedSphere(count), 3));
+    geometry.setAttribute("aShade", new BufferAttribute(face?.shade ?? new Float32Array(count).fill(0.5), 1));
+    this.geometry = geometry;
+    this.count = count;
     geometry.setAttribute("aS1", new BufferAttribute(typeShape(count, options.initials, `800 290px ${options.fontFamily}`), 3));
     geometry.setAttribute("aS2", new BufferAttribute(journeyRoad(count), 3));
     geometry.setAttribute("aS3", new BufferAttribute(clusters(count), 3));
@@ -215,6 +236,7 @@ export class ParticleWorld {
       blending: NormalBlending,
     });
     this.applyBlending(options.theme.dark);
+    this.portraitDark = options.theme.dark;
     const points = new Points(geometry, this.material);
     points.frustumCulled = false;
     this.group.add(points);
@@ -267,6 +289,20 @@ export class ParticleWorld {
     (this.uniforms.uFade.value as Color).set(theme.background);
     (this.arcUniforms.uColor.value as Color).set(theme.arc);
     this.applyBlending(theme.dark);
+    this.applyPortrait(theme.dark);
+  }
+
+  /** Light themes draw the photo's shadows; dark themes draw its light. */
+  private applyPortrait(dark: boolean) {
+    if (!this.portraitData || this.portraitDark === dark) return;
+    this.portraitDark = dark;
+    const face = portrait(this.count, dark ? this.portraitData.dark : this.portraitData.paper);
+    const position = this.geometry.getAttribute("position") as BufferAttribute;
+    const shade = this.geometry.getAttribute("aShade") as BufferAttribute;
+    (position.array as Float32Array).set(face.positions);
+    (shade.array as Float32Array).set(face.shade);
+    position.needsUpdate = true;
+    shade.needsUpdate = true;
   }
 
   /** On dark paper the points add light (a soft glow); on light paper they're ink. */

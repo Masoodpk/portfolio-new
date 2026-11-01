@@ -20,8 +20,8 @@ export type StageLayout = {
 const GULF = -((62 + 90) * Math.PI) / 180;
 
 export const STAGES: StageLayout[] = [
-  // 0 Hero — a seed planet sitting right of the headline
-  { x: 1.02, y: 0.05, scale: 0.62, tiltX: 0.25, spinSpeed: 0.12, opacity: 1, mobile: { x: 0.36, y: 0.78, scale: 0.36, opacity: 0.7 } },
+  // 0 Hero — the portrait in particles, right of the name (above it on phones)
+  { x: 1.02, y: -0.12, scale: 0.82, tiltX: 0, spinSpeed: 0, opacity: 1, face: 0, mobile: { x: 0, y: 0.6, scale: 0.4, opacity: 0.9 } },
   // 1 About — initials above the portrait, beside the text
   { x: 0.98, y: 0.28, scale: 0.66, tiltX: 0, spinSpeed: 0, opacity: 1, face: 0, mobile: { x: 0, y: 0.62, scale: 0.44, opacity: 0.5 } },
   // 2 Experience — a road along the bottom of the screen, under the stops

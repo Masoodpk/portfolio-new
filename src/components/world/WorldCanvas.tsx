@@ -40,12 +40,16 @@ export function WorldCanvas() {
     const start = async () => {
       try {
         const compact = window.matchMedia(COMPACT_QUERY).matches;
-        const [{ ParticleWorld }, land] = await Promise.all([
+        const [{ ParticleWorld }, land, face] = await Promise.all([
           import("./ParticleWorld"),
           fetch("/data/land-points.bin").then((r) => {
             if (!r.ok) throw new Error(`land points ${r.status}`);
             return r.arrayBuffer();
           }),
+          // The portrait is optional: without it the hero falls back to a planet.
+          fetch("/data/portrait-points.bin")
+            .then((r) => (r.ok ? r.arrayBuffer() : null))
+            .catch(() => null),
           document.fonts.ready,
         ]);
         if (disposed) return;
@@ -54,6 +58,7 @@ export function WorldCanvas() {
         world = new ParticleWorld(canvas, {
           compact,
           land: new Int16Array(land),
+          portrait: face ? new Int16Array(face) : undefined,
           initials: profile.initials,
           fontFamily: sans,
           theme: readTheme(),

@@ -2,13 +2,13 @@
 
 Interactive portfolio of **Masood PK**, Software Developer (Vue.js, Nuxt.js, React, Next.js).
 The theme is **"Kerala to the world"**: an editorial paper-and-ink layout with one cobalt accent,
-and a single particle world behind the page that changes shape as you scroll, from a seed planet
-in Kozhikode to a globe with flight paths to the Gulf. Everything a recruiter needs (who, what,
+and a single particle world behind the page that changes shape as you scroll, from Masood's
+portrait in particles to a globe with flight paths from Kerala to the Gulf. Everything a recruiter needs (who, what,
 experience, stack, projects, CV, contact) is readable in the first screen and works without WebGL.
 
 ## Highlights
 
-- **One particle world, six shapes:** about 11,000 points morph per section: planet (hero) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
+- **One particle world, six shapes:** about 11,000 points morph per section: Masood's portrait (hero; the cursor stirs it like dust) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
 - **Scroll storytelling in CSS:** masked line reveals, a lead paragraph that inks in word by word, parallax and a pinned sideways "road trip" through the career stops, all with CSS scroll-driven animations.
 - **Light and dark themes:** follows the system setting on a first visit, remembers the visitor's choice, and switches with a circular reveal from the toggle. The particle world glows in dark mode.
 - **First-visit loader:** the site icon's arc draws from Kozhikode to a ring while a counter runs to 100, then the sheet lifts away. Once per visit, CSS only, never for reduced motion, and the hero is painted underneath so it doesn't slow the page.
@@ -57,6 +57,7 @@ npm run dev                  # http://localhost:3000
 | `npm run og` | Re-render the Open Graph share cards into `assets-src/og/` (uses local Chrome) |
 | `npm run icons` | Re-draw the favicon, Apple touch icon and PWA icons |
 | `npm run globe` | Rebuild the globe's land points (`public/data/land-points.bin`) |
+| `npm run portrait` | Rebuild the hero's particle portrait from `src/assets/masood-pk.png` (`public/data/portrait-points.bin`) |
 
 To run end-to-end tests against a fresh production build:
 
@@ -108,13 +109,13 @@ reference them in `visuals`. The first visual is used as the cover.
 `profile.cv` if you rename it). Use a text-based, searchable PDF.
 
 **Replace the portrait:** replace `src/assets/masood-pk.png` (used on the page) and
-`public/images/masood-pk.jpg` (used in structured data).
+`public/images/masood-pk.jpg` (used in structured data), then run `npm run portrait` to rebuild the particle face.
 
 ## The particle world
 
 `src/components/world/` holds the whole 3D layer:
 
-- `shapes.ts` generates each shape as the same number of points (seed planet, initials, road, clusters, wave, globe).
+- `shapes.ts` generates each shape as the same number of points (portrait, initials, road, clusters, wave, globe). The portrait comes from `scripts/build-portrait-points.mjs`, which samples the photo like Codrops' *Interactive Particles*: more points where it's darker (light theme) or lighter (dark theme), plus extra on edges so the features read.
 - `stages.ts` sets where each shape sits per section (position, scale, tilt, spin, opacity, facing), with phone overrides.
 - `ParticleWorld.ts` is the renderer: one shader blends between neighbouring shapes as the stage changes.
 - `WorldCanvas.tsx` loads it when the browser is idle and maps scroll to a stage. Each section opts in with `data-world-stage="N"`; `data-world-hold` sets how far through the section the next morph starts.

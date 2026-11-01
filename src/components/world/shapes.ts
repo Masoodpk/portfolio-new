@@ -56,7 +56,7 @@ export function portrait(count: number, data: Int16Array): { positions: Shape; s
     const k = i % available; // pools are pre-shuffled, so the first N are a fair sample
     positions[i * 3] = data[k * 3] / 10000;
     positions[i * 3 + 1] = data[k * 3 + 1] / 10000;
-    positions[i * 3 + 2] = (rand() - 0.5) * 0.06;
+    positions[i * 3 + 2] = (rand() - 0.5) * 0.18; // a little depth, so the face shimmers as it turns
     shade[i] = data[k * 3 + 2] / 10000;
   }
   return { positions, shade };

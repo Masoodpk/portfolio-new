@@ -84,10 +84,11 @@ const vertexShader = /* glsl */ `
     float push = smoothstep(0.38, 0.0, length(away));
     p += normalize(away + 1e-5) * uPointerStrength * push * push * 0.22 * (1.0 - face);
 
-    // Hero portrait: darker parts of the photo get bigger dots (a halftone).
-    // Portrait: one dot per photo pixel, sized by its tone so neighbours
-    // overlap into a soft photographic image (as in Codrops' demo).
-    float portraitSize = mix(1.0, (0.55 + aShade) * uPortraitDot, face) * (1.0 + touch * 0.5);
+    // Portrait: one dot per photo pixel (as in Codrops' demo), sized by its
+    // tone with a random spread, so the face reads through the gaps between
+    // dots. Shade 0 marks spare particles, which stay hidden on the face.
+    float dot = step(0.01, aShade) * (0.3 + aShade) * (0.45 + aRand.w * 1.0);
+    float portraitSize = mix(1.0, dot * uPortraitDot, face) * (1.0 + touch * 0.5);
 
     // Skills stage: the focused category's cluster grows, the rest recede.
     float focus = w(s, 3.0) * uFocusAmount;
@@ -127,15 +128,15 @@ const fragmentShader = /* glsl */ `
     vec2 c = gl_PointCoord - 0.5;
     float r = length(c);
     if (r > 0.5) discard;
-    // Portrait dots are fuller discs so neighbours merge into tone.
-    float edge = smoothstep(0.5, mix(0.32, 0.22, vFace), r);
+    // Portrait dots have a soft rim, like Codrops' particles.
+    float edge = smoothstep(0.5, mix(0.32, 0.18, vFace), r);
     vec3 accent = mix(uColor, uColor2, vTint);
     // Light theme: the portrait is printed in ink with a hint of cobalt.
     // Dark theme: it's lit in the site's cobalt-to-violet, with the brightest
     // parts of the photo (forehead, cheeks, nose) running to warm white.
     vec3 printed = mix(uInk, uColor, 0.18);
     // Dark theme: white particles whose brightness is the photo's brightness.
-    vec3 lit = uInk * mix(0.32, 1.06, vShade);
+    vec3 lit = uInk * mix(0.3, 1.1, vShade);
     vec3 color = mix(accent, mix(printed, lit, uDark), vFace);
     // Particles stirred by the cursor flare: into colour on paper, toward
     // white on dark (where the face is already in colour).
@@ -299,8 +300,8 @@ export class ParticleWorld {
       uPortraitHalfWidth: { value: this.portraitHalfWidth() },
       uInk: { value: new Color(options.theme.ink) },
       uDark: { value: options.theme.dark ? 1 : 0 },
-      // Phones draw fewer of the portrait's pixels, so each dot covers more.
-      uPortraitDot: { value: options.compact ? 1.45 : 1.25 },
+      // Phones draw the portrait smaller, so its dots shrink to keep the gaps.
+      uPortraitDot: { value: options.compact ? 1.4 : 1.8 },
       uFocusAmount: { value: 0 },
       uColor: { value: new Color(options.theme.color) },
       uColor2: { value: new Color(options.theme.color2) },

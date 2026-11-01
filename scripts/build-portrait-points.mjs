@@ -1,7 +1,7 @@
 /**
  * Turns the portrait into particle positions for the hero (the technique from
  * Codrops' "Interactive Particles with Three.js"): every point is a pixel of
- * the photo, picked more often where the photo is darker. Writes
+ * the photo that clears a tone threshold, with gaps where it is dark. Writes
  * public/data/portrait-points.bin:  npm run portrait
  *
  * File layout (Int16, little-endian):
@@ -14,7 +14,7 @@ import { writeFile } from "node:fs/promises";
 import sharp from "sharp";
 
 const SOURCE = "src/assets/masood-pk.png";
-const WIDTH = 330; // pixel grid: one particle per qualifying pixel
+const WIDTH = 260; // pixel grid: one particle per qualifying pixel, with room between them
 const CROP_BOTTOM = 0.74; // the photo's bottom edge fades into a dark band
 const COUNT = 20000; // the desktop world uses 20,000 particles
 
@@ -81,8 +81,9 @@ const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
 /**
  * One particle per pixel whose tone clears the threshold (as Codrops does with
  * brightness > 34), so the face reads like a coarse photo rather than noise.
- * The pool is shuffled, so taking the first N points (phones) thins it evenly;
- * if there are fewer pixels than COUNT, some are repeated with a small offset.
+ * The pool is shuffled, so taking the first N points (phones) thins it evenly.
+ * Particles beyond the pixel count get shade 0: the shader hides them on the
+ * face, and they only appear when the world morphs into other shapes.
  */
 function sample(toneOf) {
   const scale = 2 / height; // fit the height to -1…1
@@ -93,7 +94,7 @@ function sample(toneOf) {
     for (let x = 0; x < WIDTH; x++) {
       if (!soft[y * WIDTH + x]) continue;
       const tone = toneOf(lum(x, y));
-      if (tone < 0.13 || rand() > fade) continue;
+      if (tone < 0.1 || rand() > fade) continue;
       cells.push([x, y, tone]);
     }
   }
@@ -104,17 +105,17 @@ function sample(toneOf) {
   const out = new Int16Array(COUNT * 3);
   for (let i = 0; i < COUNT; i++) {
     const [x, y, tone] = cells[i % cells.length];
-    const jitter = i < cells.length ? 0.35 : 0.9;
-    const px = (x + 0.5 + (rand() - 0.5) * jitter - WIDTH / 2) * scale;
-    const py = -(y + 0.5 + (rand() - 0.5) * jitter - height / 2) * scale;
-    out.set([Math.round(px * 10000), Math.round(py * 10000), Math.round(tone * 10000)], i * 3);
+    const px = (x + 0.5 + (rand() - 0.5) * 0.6 - WIDTH / 2) * scale;
+    const py = -(y + 0.5 + (rand() - 0.5) * 0.6 - height / 2) * scale;
+    const shade = i < cells.length ? tone : 0;
+    out.set([Math.round(px * 10000), Math.round(py * 10000), Math.round(shade * 10000)], i * 3);
   }
   console.log(`${cells.length} pixels qualify`);
   return out;
 }
 
-const forPaper = sample((l) => 1 - l); // ink where the photo is dark
-const forDark = sample((l) => l); // light where the photo is bright
+const forPaper = sample((l) => (1 - l) ** 1.1); // ink where the photo is dark
+const forDark = sample((l) => l ** 1.1); // light where the photo is bright
 const header = new Int16Array([COUNT]);
 const file = Buffer.concat([header, forPaper, forDark].map((a) => Buffer.from(a.buffer)));
 await writeFile("public/data/portrait-points.bin", file);

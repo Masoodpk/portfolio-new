@@ -190,6 +190,27 @@
   }
 }
 
+@keyframes snap-ring {
+  from {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* One-shot shockwave fired by the 3D hand at the moment of the snap */
+.snap-ring {
+  width: min(70%, 34rem);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  border: 1px solid var(--color-accent);
+  box-shadow: 0 0 40px -8px rgb(255 95 31 / 0.6), inset 0 0 40px -8px rgb(255 95 31 / 0.4);
+  animation: snap-ring 0.9s var(--ease-out-expo) forwards;
+}
+
 .animate-scroll-cue {
   animation: scroll-cue 2.4s var(--ease-in-out-quart) infinite;
 }

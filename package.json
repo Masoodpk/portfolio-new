@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "poster": "node scripts/capture-hand-poster.mjs",
+    "test:e2e": "playwright test",
+    "model": "npx -y @gltf-transform/cli@4 optimize assets-src/models/hand_snap_v2.glb public/models/hand.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify false --instance false --join false --flatten false"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -20,6 +23,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -27,6 +31,7 @@
     "@types/three": "^0.187.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -103,8 +103,10 @@ function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
           const nextTop = next.getBoundingClientRect().top;
           const span = Math.max(1, nextTop - rect.top);
           const progress = (probe - rect.top) / span;
-          // Hold the shape for most of the section, morph in its final third.
-          const t = Math.min(1, Math.max(0, (progress - 0.62) / 0.38));
+          // Hold the shape for most of the section (data-world-hold, default
+          // 62%), then morph over the rest.
+          const hold = Number(sections[i].dataset.worldHold ?? 0.62);
+          const t = Math.min(1, Math.max(0, (progress - hold) / (1 - hold)));
           stage = index + (Number(next.dataset.worldStage) - index) * t * t * (3 - 2 * t);
         }
       }

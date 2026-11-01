@@ -55,7 +55,7 @@ export function JourneyRail() {
         {ids.map((id, i) => (
           <span key={id} className="relative flex items-center justify-end gap-3">
             <span
-              className={`text-xs font-semibold tracking-wide transition-all duration-500 ease-out-expo ${
+              className={`rounded-full bg-paper/85 px-2 py-0.5 text-xs font-semibold tracking-wide transition-all duration-500 ease-out-expo ${
                 i === activeIndex ? "translate-x-0 text-ink opacity-100" : "translate-x-1 text-muted opacity-0"
               }`}
             >

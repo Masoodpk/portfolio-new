@@ -1,4 +1,5 @@
 import { About } from "@/components/sections/About";
+import { Experience } from "@/components/sections/Experience";
 import { Hero } from "@/components/sections/Hero";
 import { UpcomingSection } from "@/components/sections/UpcomingSection";
 import { JourneyRail } from "@/components/world/JourneyRail";
@@ -13,13 +14,7 @@ export default function HomePage() {
       <Hero />
       {/* Sections below are rebuilt one at a time in the new design. */}
       <About />
-      <UpcomingSection
-        id="experience"
-        stage={2}
-        index="02 — Career"
-        title="The road so far"
-        summary="Software Developer at IOCOD Infotech since January 2025, after a web development traineeship at Skepper Creative Agency."
-      />
+      <Experience />
       <UpcomingSection
         id="skills"
         stage={3}

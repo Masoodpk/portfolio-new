@@ -83,19 +83,21 @@ export function typeShape(count: number, text: string, font: string): Shape {
   return out;
 }
 
-/** 2 — Experience: a ribbon-like road winding into the distance. */
-export function journeyRibbon(count: number): Shape {
+/** 2 — Experience: a road running across the screen, winding gently into depth. */
+export function journeyRoad(count: number): Shape {
   const out = new Float32Array(count * 3);
   const rand = random(37);
   for (let i = 0; i < count; i++) {
     const t = rand();
-    const width = (rand() - 0.5) * 0.22 * (1 - t * 0.6);
-    const x = Math.sin(t * Math.PI * 2.2) * 0.75 + width;
-    const y = (t - 0.5) * 1.7;
-    const z = Math.cos(t * Math.PI * 2.2) * 0.45 - t * 0.4;
-    out[i * 3] = x;
-    out[i * 3 + 1] = y + gaussian(rand) * 0.012;
-    out[i * 3 + 2] = z;
+    const kind = rand();
+    // Dense kerbs, a sparse surface and a dashed centre line.
+    let across: number;
+    if (kind < 0.62) across = (rand() < 0.5 ? -1 : 1) * (0.085 + gaussian(rand) * 0.005);
+    else if (kind < 0.9 || Math.floor(t * 46) % 2 === 1) across = (rand() - 0.5) * 0.17;
+    else across = gaussian(rand) * 0.004;
+    out[i * 3] = (t - 0.5) * 2.4;
+    out[i * 3 + 1] = Math.sin(t * Math.PI * 3) * 0.05 + gaussian(rand) * 0.004;
+    out[i * 3 + 2] = Math.cos(t * Math.PI * 3) * 0.22 + across;
   }
   return out;
 }

@@ -266,6 +266,47 @@
   }
 }
 
+/* Career road: on wide screens the stops travel sideways while the section
+   is pinned; everywhere else they simply stack. */
+@keyframes road-travel {
+  to {
+    transform: translateX(calc(-100% + 100vw));
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 40rem) {
+    .road {
+      height: 440svh;
+      padding-block: 0;
+      view-timeline: --road block;
+    }
+    .road-pin {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      overflow: hidden;
+    }
+    .road-track {
+      flex-direction: row;
+      align-items: flex-start;
+      width: max-content;
+      max-width: none;
+      margin: 0;
+      gap: clamp(3rem, 5vw, 6rem);
+      padding: calc(var(--header-h) + 3rem) calc(var(--gutter) * 2) 0 var(--gutter);
+      animation: road-travel linear both;
+      animation-timeline: --road;
+      animation-range: contain 0% contain 100%;
+    }
+    .road-hint {
+      display: inline-flex;
+    }
+    .road-gap {
+      margin-top: 7.5rem;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

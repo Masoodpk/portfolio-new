@@ -17,7 +17,7 @@ import {
   WebGLRenderer,
   type IUniform,
 } from "three";
-import { clusters, globe, journeyRibbon, latLonToVec, seedSphere, typeShape, waveField } from "./shapes";
+import { clusters, globe, journeyRoad, latLonToVec, seedSphere, typeShape, waveField } from "./shapes";
 import { STAGES, ORIGIN, DESTINATIONS, type StageLayout } from "./stages";
 
 const vertexShader = /* glsl */ `
@@ -158,7 +158,7 @@ export class ParticleWorld {
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(seedSphere(count), 3));
     geometry.setAttribute("aS1", new BufferAttribute(typeShape(count, options.initials, `800 290px ${options.fontFamily}`), 3));
-    geometry.setAttribute("aS2", new BufferAttribute(journeyRibbon(count), 3));
+    geometry.setAttribute("aS2", new BufferAttribute(journeyRoad(count), 3));
     geometry.setAttribute("aS3", new BufferAttribute(clusters(count), 3));
     geometry.setAttribute("aS4", new BufferAttribute(waveField(count), 3));
     geometry.setAttribute("aS5", new BufferAttribute(globe(count, options.land), 3));
@@ -308,18 +308,21 @@ export class ParticleWorld {
     }
 
     u.uOpacity.value = this.baseOpacity * this.layout.opacity;
-    this.spin = (this.spin + dt * this.layout.spinSpeed) % (Math.PI * 2);
-    // On the globe, turn to face the Arabian Sea between Kerala and the Gulf.
+    // Spin freely, or turn towards a stage's fixed facing (front for type and
+    // road, the Arabian Sea for the globe). Facing eases in with the stage.
     const globeWeight = Math.max(0, 1 - Math.abs(this.stage - 5));
-    const faceGulf = -((62 + 90) * Math.PI) / 180 + Math.sin(time * 0.25) * 0.12;
-    let spin = this.spin;
-    while (spin - faceGulf > Math.PI) spin -= Math.PI * 2;
-    while (faceGulf - spin > Math.PI) spin += Math.PI * 2;
+    const faceWeight = (a.face === undefined ? 0 : 1 - ease) + (b.face === undefined ? 0 : ease);
+    let face = a.face ?? b.face ?? 0;
+    if (a.face !== undefined && b.face !== undefined) face += shortestAngle(a.face, b.face) * ease;
+    face += Math.sin(time * 0.25) * 0.12 * globeWeight;
+    this.spin += dt * this.layout.spinSpeed;
+    this.spin += shortestAngle(this.spin, face) * (1 - Math.exp(-dt * 5 * faceWeight));
+    this.spin %= Math.PI * 2;
 
     const g = this.group;
     g.position.set(this.layout.x, this.layout.y, 0);
     g.scale.setScalar(this.layout.scale);
-    g.rotation.y = spin + (faceGulf - spin) * globeWeight;
+    g.rotation.y = this.spin;
     g.rotation.x = this.layout.tiltX;
     g.updateMatrixWorld();
 
@@ -338,4 +341,10 @@ export class ParticleWorld {
 
     this.renderer.render(this.scene, this.camera);
   };
+}
+
+/** Signed difference from angle a to angle b, wrapped to (-π, π]. */
+function shortestAngle(a: number, b: number) {
+  const d = (b - a) % (Math.PI * 2);
+  return d > Math.PI ? d - Math.PI * 2 : d < -Math.PI ? d + Math.PI * 2 : d;
 }

@@ -6,6 +6,8 @@ export type TimelineEntry = {
   role: string;
   organization: string;
   location?: string;
+  /** City centre, for the distance between stops on the road */
+  coordinates?: { lat: number; lon: number };
   /** Human-readable period exactly as it should appear */
   period: string;
   /** ISO month for machine-readable <time> and structured data */
@@ -23,6 +25,7 @@ export const timeline: TimelineEntry[] = [
     role: "Software Developer",
     organization: "IOCOD Infotech",
     location: "Kozhikode, Kerala",
+    coordinates: { lat: 11.2588, lon: 75.7804 },
     period: "Jan 2025 — Present",
     start: "2025-01",
     end: "present",
@@ -44,6 +47,7 @@ export const timeline: TimelineEntry[] = [
     role: "Web Developer Trainee",
     organization: "Skepper Creative Agency",
     location: "Bangalore",
+    coordinates: { lat: 12.9716, lon: 77.5946 },
     period: "Sep 2024 — Dec 2024",
     start: "2024-09",
     end: "2024-12",
@@ -63,6 +67,7 @@ export const timeline: TimelineEntry[] = [
     role: "B.Tech, Computer Science",
     organization: "Dhaanish Ahmed Institute of Technology",
     location: "Coimbatore",
+    coordinates: { lat: 11.0168, lon: 76.9558 },
     // VERIFY: latest CV says "Jan 2023 – Dec 2023"; the 10 Oct 2026 CV says "Aug 2019 – Jun 2023".
     period: "2019 — 2023",
     start: "2019-08",

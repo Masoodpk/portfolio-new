@@ -6,6 +6,8 @@ import { ProjectVisual } from "@/components/projects/ProjectVisual";
 import { TagList } from "@/components/ui/Tag";
 import { getAdjacentProject, getProject, projects } from "@/content/projects";
 import { profile } from "@/content/profile";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { projectJsonLd } from "@/lib/structured-data";
 
 // Every case study is prerendered from generateStaticParams, so reading `params`
 // never blocks a real navigation; opt out of the dev-only instant validation.
@@ -19,9 +21,15 @@ export async function generateMetadata({ params }: PageProps<"/projects/[slug]">
   const { slug } = await params;
   const project = getProject(slug);
   if (!project) return {};
+  const title = `${project.name} — Case Study`;
+  const description = `${project.description} ${profile.name}'s role: ${project.role}.`;
+  const url = `/projects/${project.slug}`;
   return {
-    title: `${project.name} — Case Study`,
-    description: `${project.description} ${profile.name}'s role: ${project.role}.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "article", title, description, url },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -35,6 +43,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
 
   return (
     <article className="pt-[var(--header-h)]">
+      <JsonLd data={projectJsonLd(project)} />
       <header className="container-page pt-10 md:pt-16">
         <nav aria-label="Breadcrumb">
           <ol className="label-mono flex flex-wrap items-center gap-2 text-subtle">

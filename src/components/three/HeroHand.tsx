@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { SceneErrorBoundary } from "./SceneErrorBoundary";
 import { passThroughProgress, pinnedProgress } from "./hand-timeline";
 import type { HandController } from "./HandScene";
@@ -14,10 +15,15 @@ type Mode = "pending" | "3d" | "static";
 
 const DESKTOP_QUERY = "(min-width: 1024px)";
 
-function canRender3D() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+/** Cheap preference checks that can run immediately on load. */
+function prefersStatic() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-  if (connection?.saveData) return false;
+  return Boolean(connection?.saveData);
+}
+
+/** Creates a throwaway context, so it only runs right before loading the scene. */
+function supportsWebGL() {
   try {
     const canvas = document.createElement("canvas");
     return Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
@@ -49,18 +55,36 @@ export function HeroHand() {
 
   const heroSection = useCallback(() => rootRef.current?.closest("section") ?? null, []);
 
-  // Decide once the browser is idle — the 3D chunk never competes with first paint.
-  // Reduced motion is also handled in CSS, so the layout is right before this runs.
+  // Decide when to load the 3D chunk without competing with first paint:
+  // desktop waits for idle; phones and tablets (hand below the CTAs, slower CPUs)
+  // wait for the visitor's first scroll or touch. Reduced motion is also handled
+  // in CSS, so the layout is right before this runs.
   useEffect(() => {
+    if (prefersStatic()) {
+      markStatic(heroSection());
+      return;
+    }
+    const desktop = window.matchMedia(DESKTOP_QUERY).matches;
     const start = () => {
-      if (!canRender3D()) {
+      if (!supportsWebGL()) {
         markStatic(heroSection());
         setMode("static");
         return;
       }
-      setCompact(!window.matchMedia(DESKTOP_QUERY).matches);
+      setCompact(!desktop);
       setMode("3d");
     };
+
+    if (!desktop) {
+      const events = ["scroll", "touchstart", "pointerdown", "keydown"] as const;
+      const onFirstInteraction = () => {
+        events.forEach((type) => window.removeEventListener(type, onFirstInteraction));
+        start();
+      };
+      events.forEach((type) => window.addEventListener(type, onFirstInteraction, { passive: true, once: true }));
+      return () => events.forEach((type) => window.removeEventListener(type, onFirstInteraction));
+    }
+
     if ("requestIdleCallback" in window) {
       const id = window.requestIdleCallback(start, { timeout: 2500 });
       return () => window.cancelIdleCallback(id);
@@ -144,14 +168,14 @@ export function HeroHand() {
   return (
     <div ref={rootRef} className="absolute inset-0" aria-hidden="true">
       {/* Static poster: shown until the first 3D frame, and as the permanent fallback. */}
-      {/* eslint-disable-next-line @next/next/no-img-element -- decorative, sized by CSS, must not become LCP */}
-      <img
+      <Image
         src="/images/hand-poster.webp"
         alt=""
         width={388}
         height={1100}
-        decoding="async"
-        fetchPriority="low"
+        sizes="(min-width: 1024px) 14rem, 9rem"
+        // Visible on load (and Lighthouse's mobile LCP element), so don't lazy-load it.
+        preload
         // 81% matches the hand's share of the canvas height (2.6 units in a 30° view at z=6).
         className={`absolute inset-0 m-auto h-[81%] w-auto object-contain transition-opacity duration-700 ${
           ready ? "opacity-0" : "opacity-100"

@@ -72,10 +72,11 @@ export function SiteHeader() {
         <a
           href={sectionHref("home")}
           className="group flex items-center gap-3"
-          aria-label={`${profile.name} — back to top`}
           onClick={() => setOpen(false)}
         >
           <span className="font-display-wide text-lg leading-none">{profile.initials}</span>
+          {/* Visible text stays in the accessible name (WCAG 2.5.3 label-in-name). */}
+          <span className="sr-only">, {profile.name}, home</span>
           <span className="hidden h-4 w-px bg-line-strong sm:block" aria-hidden="true" />
           <span className="label-mono hidden text-subtle transition-colors group-hover:text-fg sm:block">
             {profile.title}

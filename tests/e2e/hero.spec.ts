@@ -15,11 +15,17 @@ test.describe("hero", () => {
   test("loads the 3D hand and snaps when scrolled", async ({ page, isMobile }) => {
     await page.goto("/");
     const canvas = page.locator(`${hero} canvas`);
+    if (isMobile) {
+      // Phones only load 3D after the first interaction, keeping first load light.
+      await page.waitForTimeout(1500);
+      await expect(canvas).toHaveCount(0);
+      await page.evaluate(() => window.scrollBy(0, 1));
+    }
     await expect(canvas).toBeAttached({ timeout: 15_000 });
     await expect(page.locator(hero)).toHaveAttribute("data-snapped", "false");
 
     if (isMobile) {
-      await page.locator(`${hero} canvas`).scrollIntoViewIfNeeded();
+      await canvas.scrollIntoViewIfNeeded();
       await page.mouse.wheel(0, 400);
     } else {
       await page.evaluate(() => window.scrollTo(0, document.querySelector("#home")!.clientHeight));
@@ -42,7 +48,7 @@ test.describe("hero fallbacks", () => {
     await page.goto("/");
     await expect(page.locator(hero)).toHaveAttribute("data-hand", "static", { timeout: 5_000 });
     await expect(page.locator(`${hero} canvas`)).toHaveCount(0);
-    await expect(page.locator(`${hero} img[src="/images/hand-poster.webp"]`)).toBeVisible();
+    await expect(page.locator(`${hero} img[src*="hand-poster"]`)).toBeVisible();
     const { height, viewport } = await page.evaluate(() => ({
       height: document.querySelector("#home")!.clientHeight,
       viewport: window.innerHeight,
@@ -60,8 +66,10 @@ test.describe("hero fallbacks", () => {
       };
     });
     await page.goto("/");
+    // Phones only probe WebGL once the visitor interacts.
+    await page.evaluate(() => window.scrollBy(0, 1));
     await expect(page.locator(hero)).toHaveAttribute("data-hand", "static", { timeout: 5_000 });
     await expect(page.locator(`${hero} canvas`)).toHaveCount(0);
-    await expect(page.locator(`${hero} img[src="/images/hand-poster.webp"]`)).toBeVisible();
+    await expect(page.locator(`${hero} img[src*="hand-poster"]`)).toBeVisible();
   });
 });

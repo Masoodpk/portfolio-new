@@ -6,6 +6,7 @@ import { ArrowDownToLine } from "lucide-react";
 import { navItems } from "@/content/navigation";
 import { profile } from "@/content/profile";
 import { useActiveSection } from "@/lib/use-active-section";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const sectionIds = navItems.map((item) => item.id);
 
@@ -101,6 +102,13 @@ export function SiteHeader() {
         </nav>
 
         <div className="relative z-10 flex items-center gap-2">
+          <ThemeToggle
+            className={
+              open
+                ? "border-paper/40 text-paper"
+                : "border-line-strong bg-paper/60 text-ink backdrop-blur-md hover:border-ink"
+            }
+          />
           <a
             href={profile.cv.href}
             download={profile.cv.fileName}

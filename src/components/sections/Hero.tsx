@@ -8,6 +8,8 @@ const coordinate = (value: number, positive: string, negative: string) =>
   `${Math.abs(value).toFixed(2)}°${value >= 0 ? positive : negative}`;
 
 const drift = (distance: string) => ({ "--drift": distance }) as CSSProperties;
+/** Entrance delay; the loader adds its own length on top (see --intro in globals.css). */
+const delay = (ms: string) => ({ "--d": ms }) as CSSProperties;
 
 export function Hero() {
   const [lineOne, lineTwo] = profile.headline;
@@ -23,7 +25,7 @@ export function Hero() {
       <StaticGlobe className="pointer-events-none absolute right-[-6vw] top-[45%] hidden w-[46vw] max-w-[40rem] -translate-y-1/2 opacity-45 [[data-world=static]_&]:block" />
 
       <div className="container-page relative flex flex-1 flex-col justify-between gap-10 pb-8 pt-6 md:pt-10">
-        <div className="animate-fade flex flex-wrap items-center justify-between gap-4" style={{ animationDelay: "600ms" }}>
+        <div className="animate-fade flex flex-wrap items-center justify-between gap-4" style={delay("600ms")}>
           <p className="eyebrow text-ink-soft">
             {profile.title} <span className="mx-2 text-line-strong">/</span> {profile.discipline}
           </p>
@@ -36,13 +38,13 @@ export function Hero() {
         <h1 id="hero-title" className="font-display text-[clamp(4.75rem,min(14vw,24svh),15rem)] leading-[0.8]">
           <span className="hero-drift block" style={drift("-8vw")}>
             <span className="reveal-line">
-              <span style={{ animationDelay: "150ms" }}>Masood</span>
+              <span style={delay("150ms")}>Masood</span>
             </span>
           </span>
           <span className="hero-drift block pl-[0.9em]" style={drift("10vw")}>
             <span className="reveal-line">
-              <span className="italic text-cobalt" style={{ animationDelay: "280ms" }}>
-                PK
+              <span style={delay("280ms")}>
+                <span className="text-gradient italic">PK</span>
               </span>
             </span>
           </span>
@@ -50,7 +52,7 @@ export function Hero() {
         </h1>
 
         <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-12">
-          <div className="animate-fade lg:col-span-6 xl:col-span-5" style={{ animationDelay: "700ms" }}>
+          <div className="animate-fade lg:col-span-6 xl:col-span-5" style={delay("700ms")}>
             <p className="text-[clamp(1.5rem,2.5vw,2.375rem)] font-semibold leading-[1.1] tracking-[-0.02em]">
               {lineOne} <span className="text-ink-soft">{lineTwo}</span>
             </p>
@@ -82,7 +84,7 @@ export function Hero() {
 
           <div
             className="animate-fade flex items-end justify-between gap-6 border-t border-line pt-5 text-sm lg:col-span-4 lg:col-start-9 lg:flex-col lg:items-end lg:border-t-0 lg:pt-0 lg:text-right"
-            style={{ animationDelay: "900ms" }}
+            style={delay("900ms")}
           >
             <p className="flex flex-col gap-1">
               <span className="eyebrow text-muted">Point of origin</span>

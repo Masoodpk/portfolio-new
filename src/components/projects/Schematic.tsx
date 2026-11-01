@@ -59,8 +59,8 @@ function Dashboard() {
       ))}
       <div className="col-span-3 border border-line bg-paper p-[3%]">
         <svg viewBox="0 0 300 100" preserveAspectRatio="none" className="size-full">
-          <path d="M0 80 L40 70 L80 74 L120 50 L160 56 L200 34 L240 40 L300 18" fill="none" stroke="#2340ff" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-          <path d="M0 90 L40 86 L80 88 L120 76 L160 80 L200 66 L240 70 L300 58" fill="none" stroke="rgb(20 20 20 / 0.28)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <path d="M0 80 L40 70 L80 74 L120 50 L160 56 L200 34 L240 40 L300 18" fill="none" className="stroke-cobalt" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <path d="M0 90 L40 86 L80 88 L120 76 L160 80 L200 66 L240 70 L300 58" fill="none" className="stroke-line-strong" strokeWidth="2" vectorEffect="non-scaling-stroke" />
         </svg>
       </div>
       <div className="flex flex-col gap-[8%] border border-line bg-paper p-[8%]">

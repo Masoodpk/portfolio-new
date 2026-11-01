@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { profile } from "@/content/profile";
-import type { ParticleWorld } from "./ParticleWorld";
+import type { ParticleWorld, WorldTheme } from "./ParticleWorld";
 import { WORLD_FOCUS_EVENT } from "./stages";
 
 const COMPACT_QUERY = "(max-width: 1023px)";
@@ -56,6 +56,7 @@ export function WorldCanvas() {
           land: new Int16Array(land),
           initials: profile.initials,
           fontFamily: sans,
+          theme: readTheme(),
         });
         root.dataset.world = "3d";
         cleanups.push(...wire(world, canvas));
@@ -90,7 +91,19 @@ export function WorldCanvas() {
   );
 }
 
-/** Connects scroll, pointer, resize and visibility to the world. Returns cleanups. */
+function readTheme(): WorldTheme {
+  const style = getComputedStyle(document.documentElement);
+  const token = (name: string) => style.getPropertyValue(name).trim();
+  return {
+    color: token("--cobalt"),
+    color2: token("--violet"),
+    background: token("--paper"),
+    arc: token("--cobalt-deep"),
+    dark: document.documentElement.dataset.theme === "dark",
+  };
+}
+
+/** Connects scroll, pointer, resize, theme and visibility to the world. Returns cleanups. */
 function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
   let frame = 0;
 
@@ -138,8 +151,11 @@ function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
     onScroll();
   });
 
+  const themeObserver = new MutationObserver(() => world.setTheme(readTheme()));
+
   updateStage();
   observer.observe(canvas);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("pointermove", onPointer, { passive: true });
   document.documentElement.addEventListener("pointerleave", onLeave);
@@ -149,6 +165,7 @@ function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
   return [
     () => cancelAnimationFrame(frame),
     () => observer.disconnect(),
+    () => themeObserver.disconnect(),
     () => window.removeEventListener("scroll", onScroll),
     () => window.removeEventListener("pointermove", onPointer),
     () => document.documentElement.removeEventListener("pointerleave", onLeave),

@@ -10,6 +10,8 @@ experience, stack, projects, CV, contact) is readable in the first screen and wo
 
 - **One particle world, six shapes:** about 11,000 points morph per section: planet (hero) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
 - **Scroll storytelling in CSS:** masked line reveals, a lead paragraph that inks in word by word, parallax and a pinned sideways "road trip" through the career stops, all with CSS scroll-driven animations.
+- **Light and dark themes:** follows the system setting on a first visit, remembers the visitor's choice, and switches with a circular reveal from the toggle. The particle world glows in dark mode.
+- **First-visit loader:** the site icon's arc draws from Kozhikode to a ring while a counter runs to 100, then the sheet lifts away. Once per visit, CSS only, never for reduced motion, and the hero is painted underneath so it doesn't slow the page.
 - **Recruiter-first:** CV download in the header, hero and contact section; current role first; case-study pages at `/projects/<slug>`.
 - **Honest skills:** each skill is marked *used at work* or *studied & personal projects*, with a one-line note. No percentages. Picking a category spotlights its particle cluster.
 - **Contact form** with shared validation, a honeypot, rate limiting and a mailto fallback.
@@ -30,7 +32,7 @@ experience, stack, projects, CV, contact) is readable in the first screen and wo
 | Tests | Vitest (unit) and Playwright + axe-core (end-to-end, accessibility, SEO) |
 
 Fonts: Instrument Serif (display) and Manrope (body), self-hosted via `next/font`.
-Colours: paper `#F2EEE5`, ink `#141414`, cobalt `#2340FF` (tokens in `src/app/globals.css`).
+Colours: light — paper `#F4F1EA`, ink `#131313`, cobalt `#2340FF`, violet `#8A2BE2`; dark — paper `#0C0D14`, ink `#ECEAE4`, cobalt `#8B97FF`, violet `#C99BFF`. Tokens live in `src/app/globals.css`; components only use role names (paper, ink, cobalt…), so both themes come for free.
 
 ## Getting started
 

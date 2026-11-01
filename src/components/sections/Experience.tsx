@@ -85,7 +85,7 @@ export function Experience() {
               <span className="h-px flex-1 bg-line" aria-hidden="true" />
             </div>
             <h2 id="experience-title" className="font-display mt-10 text-[clamp(3.5rem,7vw,7.5rem)]">
-              The road <span className="italic text-cobalt">so far</span>
+              The road <span className="text-gradient italic">so far</span>
             </h2>
             <p className="mt-8 max-w-[40ch] text-lg leading-relaxed text-ink-soft">
               From a B.Tech in Coimbatore to a traineeship in Bangalore and production work in Kozhikode — over two

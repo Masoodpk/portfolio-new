@@ -45,7 +45,7 @@ export function Skills() {
 
         <div className="mt-12 lg:w-7/12">
           <h2 id="skills-title" className="font-display text-[clamp(3.5rem,7vw,7.5rem)]">
-            Tools of the <span className="italic text-cobalt">trade</span>
+            Tools of the <span className="text-gradient italic">trade</span>
           </h2>
           <p className="mt-8 max-w-[46ch] text-lg leading-relaxed text-ink-soft">
             What I use day to day at work, and what I&apos;m exploring alongside it. No percentages — just where each

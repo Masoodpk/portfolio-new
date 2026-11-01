@@ -42,7 +42,9 @@ export function About() {
               <span>{about.heading[0]}</span>
             </span>
             <span className="reveal-view">
-              <span className="italic text-cobalt">{about.heading[1]}</span>
+              <span>
+                <span className="text-gradient italic">{about.heading[1]}</span>
+              </span>
             </span>
           </h2>
 
@@ -54,14 +56,14 @@ export function About() {
               data-initials={profile.initials}
               className="font-display hidden text-right text-[clamp(6rem,11vw,11rem)] italic text-cobalt/15 before:content-[attr(data-initials)] lg:[[data-world=static]_&]:block"
             />
-            <figure className="reveal-clip ml-auto w-full max-w-sm lg:mt-auto lg:max-w-[17rem]">
+            <figure className="reveal-clip ml-auto w-full max-w-sm lg:mt-auto lg:max-w-[min(17rem,30svh)]">
               <div className="overflow-hidden rounded-[2px] bg-paper-deep">
                 <Image
                   src={portrait}
                   alt={`Portrait of ${profile.name}, ${profile.title}`}
                   placeholder="blur"
                   sizes="(min-width: 1024px) 17rem, (min-width: 640px) 24rem, 100vw"
-                  className="aspect-[4/5] w-full object-cover object-top contrast-[1.05] grayscale mix-blend-multiply"
+                  className="aspect-[4/5] w-full object-cover object-top contrast-[1.05] grayscale mix-blend-multiply dark:mix-blend-normal dark:brightness-90"
                 />
               </div>
               <figcaption className="mt-3 flex items-baseline justify-between gap-4 text-xs text-muted">

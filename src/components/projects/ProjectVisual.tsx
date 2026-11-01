@@ -24,7 +24,7 @@ export function ProjectVisual({ project, visual, sizes, preload = false }: Props
 
   if (visual.device === "mobile") {
     return (
-      <div className="mx-auto w-full max-w-[18rem] rounded-[2rem] border border-line-strong bg-paper p-2.5 shadow-[0_40px_80px_-40px_rgb(20_20_20/0.35)]">
+      <div className="mx-auto w-full max-w-[18rem] rounded-[2rem] border border-line-strong bg-paper p-2.5 shadow-[0_40px_80px_-40px_var(--shadow)]">
         <div className="overflow-hidden rounded-[1.5rem] bg-paper-raised">
           <Image
             src={visual.src}

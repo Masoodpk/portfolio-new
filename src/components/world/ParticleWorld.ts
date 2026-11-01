@@ -1,4 +1,5 @@
 import {
+  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -41,6 +42,7 @@ const vertexShader = /* glsl */ `
 
   varying float vDepth;
   varying float vAlpha;
+  varying float vTint;
 
   float w(float s, float i) { return max(0.0, 1.0 - abs(s - i)); }
 
@@ -73,23 +75,28 @@ const vertexShader = /* glsl */ `
     gl_Position = projectionMatrix * mv;
     gl_PointSize = uSize * uPixelRatio * (0.6 + aRand.z * 0.8) * (1.0 + focus * inFocus * 0.7) / -mv.z;
     vDepth = smoothstep(2.6, 5.4, -mv.z);
+    // Colour drifts from cobalt to violet across each shape.
+    vTint = smoothstep(-1.1, 1.1, p.x * 0.8 + p.y * 0.6);
     vAlpha = t * mix(1.0, 0.3 + inFocus * 0.7, focus);
   }
 `;
 
 const fragmentShader = /* glsl */ `
   uniform vec3 uColor;
+  uniform vec3 uColor2;
   uniform vec3 uFade;
+  uniform float uFadeAmount;
   uniform float uOpacity;
   varying float vDepth;
   varying float vAlpha;
+  varying float vTint;
 
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float r = length(c);
     if (r > 0.5) discard;
     float edge = smoothstep(0.5, 0.32, r);
-    vec3 color = mix(uColor, uFade, vDepth * 0.75);
+    vec3 color = mix(mix(uColor, uColor2, vTint), uFade, vDepth * uFadeAmount);
     gl_FragColor = vec4(color, edge * vAlpha * uOpacity * (0.85 - vDepth * 0.5));
   }
 `;
@@ -122,7 +129,11 @@ export type WorldOptions = {
   land: Int16Array;
   initials: string;
   fontFamily: string;
+  theme: WorldTheme;
 };
+
+/** Colours read from the page's CSS tokens, so the world follows light/dark. */
+export type WorldTheme = { color: string; color2: string; background: string; arc: string; dark: boolean };
 
 type Uniforms = Record<string, IUniform>;
 
@@ -132,6 +143,7 @@ export class ParticleWorld {
   private camera = new PerspectiveCamera(32, 1, 0.1, 60);
   private group = new Group();
   private uniforms: Uniforms;
+  private material: ShaderMaterial;
   private arcUniforms: Uniforms;
   private arcs = new Group();
   private raycaster = new Raycaster();
@@ -188,21 +200,22 @@ export class ParticleWorld {
       uPointerStrength: { value: 0 },
       uFocus: { value: -1 },
       uFocusAmount: { value: 0 },
-      uColor: { value: new Color("#2340ff") },
-      uFade: { value: new Color("#f2eee5") },
+      uColor: { value: new Color(options.theme.color) },
+      uColor2: { value: new Color(options.theme.color2) },
+      uFade: { value: new Color(options.theme.background) },
+      uFadeAmount: { value: 0.75 },
       uOpacity: { value: this.baseOpacity },
     };
-    const points = new Points(
-      geometry,
-      new ShaderMaterial({
-        vertexShader,
-        fragmentShader,
-        uniforms: this.uniforms,
-        transparent: true,
-        depthWrite: false,
-        blending: NormalBlending,
-      }),
-    );
+    this.material = new ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: this.uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: NormalBlending,
+    });
+    this.applyBlending(options.theme.dark);
+    const points = new Points(geometry, this.material);
     points.frustumCulled = false;
     this.group.add(points);
 
@@ -210,7 +223,7 @@ export class ParticleWorld {
       uDraw: { value: 0 },
       uOpacity: { value: 0 },
       uTime: { value: 0 },
-      uColor: { value: new Color("#1328c4") },
+      uColor: { value: new Color(options.theme.arc) },
     };
     this.buildArcs();
     this.group.add(this.arcs);
@@ -246,6 +259,21 @@ export class ParticleWorld {
       geometry.setAttribute("aT", new BufferAttribute(ts, 1));
       this.arcs.add(new Line(geometry, material));
     }
+  }
+
+  setTheme(theme: WorldTheme) {
+    (this.uniforms.uColor.value as Color).set(theme.color);
+    (this.uniforms.uColor2.value as Color).set(theme.color2);
+    (this.uniforms.uFade.value as Color).set(theme.background);
+    (this.arcUniforms.uColor.value as Color).set(theme.arc);
+    this.applyBlending(theme.dark);
+  }
+
+  /** On dark paper the points add light (a soft glow); on light paper they're ink. */
+  private applyBlending(dark: boolean) {
+    this.material.blending = dark ? AdditiveBlending : NormalBlending;
+    this.material.needsUpdate = true;
+    this.uniforms.uFadeAmount.value = dark ? 0.55 : 0.75;
   }
 
   /** Highlights one skills cluster (category index), or none. */

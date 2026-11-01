@@ -136,7 +136,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
       <section aria-labelledby="approach-title" className="relative border-y border-line bg-paper-raised">
         <div className="container-page section-y">
           <h2 id="approach-title" className="font-display max-w-[18ch] text-[clamp(3rem,6vw,5.5rem)]">
-            How I <span className="italic text-cobalt">approached</span> it
+            How I <span className="text-gradient italic">approached</span> it
           </h2>
           <ol className="mt-14 grid grid-cols-1 border-t border-line-strong md:grid-cols-2 xl:grid-cols-4">
             {project.caseStudy.approach.map((step, i) => (

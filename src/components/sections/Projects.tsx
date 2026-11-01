@@ -15,7 +15,7 @@ export function Projects() {
 
         <div className="mt-12 grid grid-cols-1 items-end gap-8 lg:grid-cols-12">
           <h2 id="projects-title" className="font-display text-[clamp(3.5rem,7vw,7.5rem)] lg:col-span-8">
-            Things I&apos;ve helped <span className="italic text-cobalt">build</span>
+            Things I&apos;ve helped <span className="text-gradient italic">build</span>
           </h2>
           <p className="max-w-[40ch] text-lg leading-relaxed text-ink-soft lg:col-span-4">
             Production features for a live business platform, and a marketing site for a growing brand — described

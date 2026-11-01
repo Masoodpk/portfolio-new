@@ -3,9 +3,10 @@ import { expect, test } from "@playwright/test";
 
 const pages = ["/", "/projects/easify", "/projects/brew-your-brand", "/this-page-does-not-exist"];
 
-for (const path of pages) {
-  test(`no WCAG 2.2 AA violations on ${path}`, async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" }); // settle animations before auditing
+for (const path of pages) for (const colorScheme of ["light", "dark"] as const) {
+  test(`no WCAG 2.2 AA violations on ${path} (${colorScheme})`, async ({ page }) => {
+    // Reduced motion settles animations before auditing; the scheme picks the theme.
+    await page.emulateMedia({ reducedMotion: "reduce", colorScheme });
     await page.goto(path);
     await page.waitForLoadState("load");
     const results = await new AxeBuilder({ page })

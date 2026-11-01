@@ -15,7 +15,7 @@ export function Contact() {
 
         <div className="mt-12 lg:w-7/12">
           <h2 id="contact-title" className="font-display text-[clamp(3.5rem,8vw,8.5rem)]">
-            From Kerala <span className="block italic text-cobalt">to the world.</span>
+            From Kerala <span className="block"><span className="text-gradient italic">to the world.</span></span>
           </h2>
           <p className="mt-8 max-w-[46ch] text-lg leading-relaxed text-ink-soft">
             I&apos;m open to connecting with teams looking for a developer who enjoys building reliable, user-focused
@@ -77,10 +77,10 @@ export function Contact() {
       </div>
 
       <div className="container-page">
-        <div className="grid grid-cols-1 gap-12 rounded-[2rem] border border-line bg-paper-raised p-6 shadow-[0_40px_80px_-50px_rgb(20_20_20/0.35)] sm:p-10 lg:grid-cols-12 lg:gap-8 lg:p-14">
+        <div className="grid grid-cols-1 gap-12 rounded-[2rem] border border-line bg-paper-raised p-6 shadow-[0_40px_80px_-50px_var(--shadow)] sm:p-10 lg:grid-cols-12 lg:gap-8 lg:p-14">
           <div className="lg:col-span-4">
             <h3 className="font-display text-[clamp(2.5rem,4vw,3.75rem)]">
-              Or send a <span className="italic text-cobalt">message</span>
+              Or send a <span className="text-gradient italic">message</span>
             </h3>
             <p className="mt-5 max-w-[34ch] leading-relaxed text-ink-soft">
               Tell me about the role, the team or the challenge you have in mind. I&apos;ll reply by email.

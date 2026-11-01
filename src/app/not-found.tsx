@@ -6,7 +6,7 @@ export default function NotFound() {
     <section className="container-page relative flex min-h-[80svh] flex-col justify-center pt-[var(--header-h)]">
       <p className="eyebrow text-cobalt">404</p>
       <h1 className="font-display mt-6 text-[clamp(4rem,14vw,11rem)]">
-        Not <span className="italic text-cobalt">found</span>
+        Not <span className="text-gradient italic">found</span>
       </h1>
       <p className="mt-6 max-w-[44ch] text-lg text-ink-soft">
         This page doesn&apos;t exist. The portfolio, projects and contact details are all on the home page.

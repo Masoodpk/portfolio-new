@@ -23,7 +23,7 @@ export function StaticGlobe({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 400 400" className={className} aria-hidden="true">
       {dots.map((d, i) => (
-        <circle key={i} cx={d.x.toFixed(1)} cy={d.y.toFixed(1)} r={d.r.toFixed(2)} fill="#2340ff" opacity={d.o.toFixed(2)} />
+        <circle key={i} cx={d.x.toFixed(1)} cy={d.y.toFixed(1)} r={d.r.toFixed(2)} className="fill-cobalt" opacity={d.o.toFixed(2)} />
       ))}
     </svg>
   );

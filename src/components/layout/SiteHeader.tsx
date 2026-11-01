@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Download, Menu, X } from "lucide-react";
+import { ArrowDownToLine } from "lucide-react";
 import { navItems } from "@/content/navigation";
 import { profile } from "@/content/profile";
 import { useActiveSection } from "@/lib/use-active-section";
@@ -15,6 +15,7 @@ export function SiteHeader() {
   const sectionHref = (id: string) => (onHome ? `#${id}` : `/#${id}`);
   const activeSection = useActiveSection(sectionIds);
   const active = onHome ? activeSection : null;
+
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,7 @@ export function SiteHeader() {
     if (!open) return;
     const toggle = toggleRef.current;
     const menu = menuRef.current;
-    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     menu?.querySelector<HTMLElement>("a")?.focus();
 
     const onKey = (event: KeyboardEvent) => {
@@ -54,7 +55,7 @@ export function SiteHeader() {
     };
     document.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       document.removeEventListener("keydown", onKey);
       toggle?.focus();
     };
@@ -63,28 +64,23 @@ export function SiteHeader() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color] duration-500 ${
-        scrolled || open
-          ? "border-b border-line bg-ink/85 backdrop-blur-md"
-          : "border-b border-transparent"
+        scrolled && !open ? "border-b border-line bg-paper/75 backdrop-blur-md" : "border-b border-transparent"
       }`}
     >
       <div className="container-page flex h-[var(--header-h)] items-center justify-between gap-6">
         <a
           href={sectionHref("home")}
-          className="group flex items-center gap-3"
           onClick={() => setOpen(false)}
+          className={`relative z-10 font-display text-[1.75rem] leading-none tracking-tight transition-colors ${
+            open ? "text-paper" : "text-ink"
+          }`}
         >
-          <span className="font-display-wide text-lg leading-none">{profile.initials}</span>
-          {/* Visible text stays in the accessible name (WCAG 2.5.3 label-in-name). */}
-          <span className="sr-only">, {profile.name}, home</span>
-          <span className="hidden h-4 w-px bg-line-strong sm:block" aria-hidden="true" />
-          <span className="label-mono hidden text-subtle transition-colors group-hover:text-fg sm:block">
-            {profile.title}
-          </span>
+          {profile.name}
+          <span className="sr-only">, home</span>
         </a>
 
         <nav aria-label="Primary" className="hidden lg:block">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center gap-1 rounded-full border border-line bg-paper-raised/70 p-1 backdrop-blur-md">
             {navItems.map((item) => {
               const isActive = active === item.id;
               return (
@@ -92,17 +88,11 @@ export function SiteHeader() {
                   <a
                     href={sectionHref(item.id)}
                     aria-current={isActive ? "true" : undefined}
-                    className={`relative block px-3 py-2 text-sm transition-colors ${
-                      isActive ? "text-fg" : "text-subtle hover:text-fg"
+                    className={`block rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300 ${
+                      isActive ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"
                     }`}
                   >
                     {item.label}
-                    <span
-                      aria-hidden="true"
-                      className={`absolute inset-x-3 -bottom-px h-px origin-left bg-accent transition-transform duration-500 ease-out-expo ${
-                        isActive ? "scale-x-100" : "scale-x-0"
-                      }`}
-                    />
                   </a>
                 </li>
               );
@@ -110,61 +100,72 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="relative z-10 flex items-center gap-2">
           <a
             href={profile.cv.href}
             download={profile.cv.fileName}
-            className="hidden min-h-10 items-center gap-2 border border-line-strong px-4 text-sm transition-colors hover:border-accent hover:text-accent sm:inline-flex"
+            className="hidden min-h-11 items-center gap-2 rounded-full bg-cobalt px-5 text-sm font-semibold text-paper transition-colors hover:bg-cobalt-deep sm:inline-flex"
           >
-            <Download className="size-4" aria-hidden="true" />
+            <ArrowDownToLine className="size-4" aria-hidden="true" />
             Download CV
           </a>
           <button
             ref={toggleRef}
             type="button"
-            className="inline-flex size-11 items-center justify-center border border-line-strong lg:hidden"
+            className={`inline-flex min-h-11 items-center gap-2.5 rounded-full border px-4 text-sm font-semibold transition-colors lg:hidden ${
+              open ? "border-paper/40 text-paper" : "border-line-strong bg-paper/60 text-ink backdrop-blur-md"
+            }`}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((value) => !value)}
           >
-            {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
+            <span aria-hidden="true" className="relative block h-2.5 w-4">
+              <span
+                className={`absolute left-0 h-px w-4 bg-current transition-all duration-500 ease-out-expo ${
+                  open ? "top-1/2 rotate-45" : "top-0"
+                }`}
+              />
+              <span
+                className={`absolute left-0 h-px w-4 bg-current transition-all duration-500 ease-out-expo ${
+                  open ? "top-1/2 -rotate-45" : "top-full"
+                }`}
+              />
+            </span>
+            {open ? "Close" : "Menu"}
           </button>
         </div>
       </div>
 
-      <div
-        id="mobile-menu"
-        ref={menuRef}
-        hidden={!open}
-        className="h-[calc(100dvh-var(--header-h))] overflow-y-auto border-t border-line bg-ink lg:hidden"
-      >
-        <nav aria-label="Mobile" className="container-page flex min-h-full flex-col justify-between py-8">
+      <div id="mobile-menu" ref={menuRef} hidden={!open} className="fixed inset-0 overflow-y-auto bg-cobalt text-paper lg:hidden">
+        <nav
+          aria-label="Mobile"
+          className="container-page flex min-h-full flex-col justify-between pb-10 pt-[calc(var(--header-h)+2rem)]"
+        >
           <ol className="flex flex-col">
             {navItems.map((item, i) => (
-              <li key={item.id} className="border-b border-line">
+              <li key={item.id} className="border-b border-paper/20">
                 <a
                   href={sectionHref(item.id)}
                   onClick={() => setOpen(false)}
                   aria-current={active === item.id ? "true" : undefined}
-                  className="flex items-baseline gap-4 py-4"
+                  className="flex items-baseline justify-between py-4"
                 >
-                  <span className="label-mono text-accent">{String(i).padStart(2, "0")}</span>
-                  <span className="font-display-regular text-4xl">{item.label}</span>
+                  <span className="font-display text-[clamp(2.75rem,12vw,4.5rem)]">{item.label}</span>
+                  <span className="eyebrow text-paper/75">{String(i).padStart(2, "0")}</span>
                 </a>
               </li>
             ))}
           </ol>
-          <div className="mt-10 flex flex-col gap-4">
+          <div className="mt-12 flex flex-col gap-4">
             <a
               href={profile.cv.href}
               download={profile.cv.fileName}
-              className="inline-flex min-h-12 items-center justify-center gap-2 bg-accent text-sm font-medium text-ink"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-paper text-sm font-semibold text-cobalt"
             >
-              <Download className="size-4" aria-hidden="true" />
+              <ArrowDownToLine className="size-4" aria-hidden="true" />
               Download CV
             </a>
-            <a href={`mailto:${profile.email}`} className="label-mono text-center text-subtle">
+            <a href={`mailto:${profile.email}`} className="text-center text-sm text-paper/85 underline-offset-4 hover:underline">
               {profile.email}
             </a>
           </div>

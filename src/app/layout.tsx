@@ -1,32 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Geist, Geist_Mono } from "next/font/google";
+import { Instrument_Serif, Manrope } from "next/font/google";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SkipLink } from "@/components/layout/SkipLink";
-import { CustomCursor } from "@/components/layout/CustomCursor";
+import { SmoothScroll } from "@/components/layout/SmoothScroll";
+import { WorldCanvas } from "@/components/world/WorldCanvas";
 import { profile } from "@/content/profile";
 import { seo, siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const archivo = Archivo({
-  variable: "--font-archivo",
+const instrument = Instrument_Serif({
+  variable: "--font-instrument",
   subsets: ["latin"],
-  axes: ["wdth"],
+  weight: "400",
+  style: ["normal", "italic"],
   display: "swap",
 });
 
-const geist = Geist({
-  variable: "--font-geist",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  // Only used for small labels; don't let it compete with above-the-fold content.
-  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -60,24 +54,25 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b0c",
-  colorScheme: "dark",
+  themeColor: "#f2eee5",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${geist.variable} ${geistMono.variable} antialiased`}
+      className={`${instrument.variable} ${manrope.variable} antialiased`}
     >
-      <body className="flex min-h-dvh flex-col text-fg">
+      <body className="flex min-h-dvh flex-col text-ink">
         <SkipLink />
+        <SmoothScroll />
+        <WorldCanvas />
         <SiteHeader />
-        <main id="main" className="flex-1">
+        <main id="main" className="relative z-10 flex-1">
           {children}
         </main>
         <SiteFooter />
-        <CustomCursor />
       </body>
     </html>
   );

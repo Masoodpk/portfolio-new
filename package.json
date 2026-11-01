@@ -7,17 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "poster": "node scripts/capture-hand-poster.mjs",
     "test:e2e": "playwright test",
-    "model": "npx -y @gltf-transform/cli@4 optimize assets-src/models/hand_snap_v2.glb public/models/hand.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify false --instance false --join false --flatten false",
     "shots": "node scripts/capture-project-shots.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "globe": "node scripts/build-globe-points.mjs"
   },
   "dependencies": {
-    "@react-three/drei": "^10.7.9",
-    "@react-three/fiber": "^9.8.2",
+    "lenis": "^1.3.27",
     "lucide-react": "^1.66.0",
     "next": "16.4.3",
     "react": "19.3.0",
@@ -28,16 +26,21 @@
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
+    "@types/d3-geo": "^3.1.1",
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.187.0",
+    "@types/topojson-client": "^3.1.5",
+    "d3-geo": "^3.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "sharp": "^0.35.5",
     "tailwindcss": "^4",
+    "topojson-client": "^3.1.0",
     "typescript": "^5",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "world-atlas": "^2.0.2"
   },
   "engines": {
     "node": ">=20.9"

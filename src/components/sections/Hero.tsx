@@ -1,111 +1,103 @@
-import { ArrowRight, Download } from "lucide-react";
-import { ButtonLink } from "@/components/ui/Button";
-import { HeroStage } from "@/components/sections/HeroStage";
-import { HeroHand } from "@/components/three/HeroHand";
+import type { CSSProperties } from "react";
+import { ArrowDown, ArrowDownToLine, ArrowRight } from "lucide-react";
 import { profile } from "@/content/profile";
+import { ORIGIN } from "@/components/world/stages";
+import { StaticGlobe } from "@/components/world/StaticGlobe";
+
+const coordinate = (value: number, positive: string, negative: string) =>
+  `${Math.abs(value).toFixed(2)}°${value >= 0 ? positive : negative}`;
+
+const drift = (distance: string) => ({ "--drift": distance }) as CSSProperties;
 
 export function Hero() {
   const [lineOne, lineTwo] = profile.headline;
 
   return (
-    // On desktop the section is taller than the viewport and its content is pinned,
-    // so scrolling through it drives the hand animation. Collapses when 3D is off.
     <section
       id="home"
+      data-world-stage="0"
       aria-labelledby="hero-title"
-      data-snapped="false"
-      className="group/hero relative lg:motion-safe:h-[240svh] lg:data-[hand=static]:h-auto"
+      className="relative flex min-h-svh flex-col overflow-hidden pt-[var(--header-h)]"
     >
-      <div className="grain relative flex min-h-[100svh] flex-col overflow-hidden pt-[var(--header-h)] lg:sticky lg:top-0 lg:h-[100svh]">
-        {/* Warm key light from the right, where the hand sits */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_55%_at_78%_42%,rgb(255_95_31/0.10),transparent_70%)]"
-        />
+      {/* Shown only when the particle world can't run (reduced motion, no WebGL). */}
+      <StaticGlobe className="pointer-events-none absolute right-[-12vw] top-1/2 hidden w-[62vw] max-w-[52rem] -translate-y-1/2 opacity-80 [[data-world=static]_&]:block" />
 
-        <div className="container-page relative flex flex-1 flex-col">
-          {/* Meta row */}
-          <div className="flex items-center justify-between gap-4 pt-6 md:pt-10">
-            <p className="label-mono inline-flex items-center gap-3 text-muted">
-              <span className="animate-pulse-dot size-2 rounded-full bg-accent" aria-hidden="true" />
-              {profile.availability}
-            </p>
-            <p className="label-mono hidden text-subtle md:block">{profile.location}</p>
-          </div>
+      <div className="container-page relative flex flex-1 flex-col justify-between gap-10 pb-8 pt-6 md:pt-10">
+        <div className="animate-fade flex flex-wrap items-center justify-between gap-4" style={{ animationDelay: "600ms" }}>
+          <p className="eyebrow text-ink-soft">
+            {profile.title} <span className="mx-2 text-line-strong">/</span> {profile.discipline}
+          </p>
+          <p className="inline-flex items-center gap-2.5 rounded-full border border-line bg-paper-raised/70 px-4 py-2 text-sm font-medium text-ink backdrop-blur-md">
+            <span className="animate-pulse-ring size-2 rounded-full bg-cobalt" aria-hidden="true" />
+            {profile.availability}
+          </p>
+        </div>
 
-          <div className="relative grid flex-1 grid-cols-1 gap-y-10 py-10 lg:grid-cols-12 lg:grid-rows-[1fr_auto] lg:gap-y-6 lg:py-0">
-            {/* Name — first in the document for screen readers, last visually on large screens */}
-            <h1
-              id="hero-title"
-              className="animate-rise relative z-10 lg:col-span-12 lg:col-start-1 lg:row-start-2 lg:self-end lg:pb-6"
-              style={{ animationDelay: "0ms" }}
-            >
-              <span className="font-display-wide block text-[14vw] uppercase sm:text-[min(11vw,15svh,12rem)] sm:whitespace-nowrap">
-                <span className="block sm:inline">Masood</span> <span className="block sm:inline">PK</span>
-              </span>
-              <span className="label-mono mt-5 block text-muted lg:hidden">
-                {profile.title} <span className="text-line-strong">|</span> {profile.discipline}
-              </span>
-            </h1>
-
-            {/* Pitch */}
-            <div className="relative z-10 flex flex-col justify-center lg:col-span-6 lg:row-start-1 lg:py-6">
-              <p className="label-mono hidden text-muted lg:block">
-                {profile.title} <span className="mx-1 text-line-strong">|</span> {profile.discipline}
-              </p>
-              <p
-                className="font-display-regular animate-rise mt-0 text-[clamp(1.875rem,4.2vw,3.5rem)] lg:mt-5 lg:text-[clamp(2rem,3.4vw,3.5rem)]"
-                style={{ animationDelay: "80ms" }}
-              >
-                <span className="block text-balance">{lineOne}</span>
-                <span className="block text-balance text-subtle transition-colors duration-700 group-data-[snapped=true]/hero:text-fg">
-                  {lineTwo}
-                </span>
-              </p>
-              <p
-                className="animate-rise mt-5 max-w-[46ch] text-base leading-relaxed text-muted md:text-lg lg:text-base xl:text-lg"
-                style={{ animationDelay: "160ms" }}
-              >
-                {profile.intro}
-              </p>
-              <div
-                className="animate-rise mt-8 flex flex-col gap-3 xs:flex-row xs:flex-wrap xs:items-center"
-                style={{ animationDelay: "240ms" }}
-              >
-                <ButtonLink href="#projects" icon={<ArrowRight className="size-4" />}>
-                  Explore My Work
-                </ButtonLink>
-                <ButtonLink
-                  href={profile.cv.href}
-                  download={profile.cv.fileName}
-                  variant="secondary"
-                  icon={<Download className="size-4" />}
-                >
-                  Download Resume
-                </ButtonLink>
-                <ButtonLink href="#contact" variant="ghost" className="xs:px-3" icon={<ArrowRight className="size-4" />}>
-                  Let&apos;s Connect
-                </ButtonLink>
-              </div>
-            </div>
-
-            {/* 3D stage */}
-            <div className="relative min-h-[26rem] [mask-image:linear-gradient(to_bottom,black_75%,transparent)] lg:col-span-6 lg:col-start-7 lg:row-span-2 lg:row-start-1 lg:min-h-0">
-              <HeroStage />
-              <HeroHand />
-            </div>
-          </div>
-
-          {/* Scroll cue */}
-          <a
-            href="#about"
-            className="label-mono absolute bottom-8 right-[var(--gutter)] hidden items-center gap-3 text-subtle transition-colors hover:text-fg lg:flex"
-          >
-            Scroll
-            <span className="relative h-10 w-px overflow-hidden bg-line" aria-hidden="true">
-              <span className="animate-scroll-cue absolute inset-0 bg-accent" />
+        <h1 id="hero-title" className="font-display text-[clamp(4.75rem,min(14vw,24svh),15rem)] leading-[0.8]">
+          <span className="hero-drift block" style={drift("-8vw")}>
+            <span className="reveal-line">
+              <span style={{ animationDelay: "150ms" }}>Masood</span>
             </span>
-          </a>
+          </span>
+          <span className="hero-drift block pl-[0.9em]" style={drift("10vw")}>
+            <span className="reveal-line">
+              <span className="italic text-cobalt" style={{ animationDelay: "280ms" }}>
+                PK
+              </span>
+            </span>
+          </span>
+          <span className="sr-only">, {profile.title}</span>
+        </h1>
+
+        <div className="grid grid-cols-1 items-end gap-10 lg:grid-cols-12">
+          <div className="animate-fade lg:col-span-6 xl:col-span-5" style={{ animationDelay: "700ms" }}>
+            <p className="text-[clamp(1.5rem,2.5vw,2.375rem)] font-semibold leading-[1.1] tracking-[-0.02em]">
+              {lineOne} <span className="text-ink-soft">{lineTwo}</span>
+            </p>
+            <p className="mt-5 max-w-[46ch] text-base leading-relaxed text-ink-soft md:text-lg">{profile.intro}</p>
+            <div className="mt-8 flex flex-col gap-3 xs:flex-row xs:flex-wrap xs:items-center">
+              <a
+                href="#projects"
+                className="group inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-cobalt px-6 text-sm font-semibold text-paper transition-colors hover:bg-cobalt-deep"
+              >
+                Explore my work
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </a>
+              <a
+                href={profile.cv.href}
+                download={profile.cv.fileName}
+                className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full border border-ink/80 bg-paper/50 px-6 text-sm font-semibold text-ink backdrop-blur-md transition-colors hover:bg-ink hover:text-paper"
+              >
+                <ArrowDownToLine className="size-4" aria-hidden="true" />
+                Download résumé
+              </a>
+              <a
+                href="#contact"
+                className="inline-flex min-h-12 items-center justify-center px-3 text-sm font-semibold text-ink underline decoration-line-strong underline-offset-[6px] transition-colors hover:text-cobalt hover:decoration-cobalt"
+              >
+                Let&apos;s connect
+              </a>
+            </div>
+          </div>
+
+          <div
+            className="animate-fade flex items-end justify-between gap-6 border-t border-line pt-5 text-sm lg:col-span-4 lg:col-start-9 lg:flex-col lg:items-end lg:border-t-0 lg:pt-0 lg:text-right"
+            style={{ animationDelay: "900ms" }}
+          >
+            <p className="flex flex-col gap-1">
+              <span className="eyebrow text-muted">Point of origin</span>
+              <span className="font-medium text-ink">
+                {ORIGIN.name}, Kerala <span className="text-ink-soft">· India</span>
+              </span>
+              <span className="tabular-nums text-ink-soft">
+                {coordinate(ORIGIN.lat, "N", "S")} {coordinate(ORIGIN.lon, "E", "W")}
+              </span>
+            </p>
+            <a href="#about" className="group inline-flex items-center gap-2 font-semibold text-ink hover:text-cobalt">
+              Begin the journey
+              <ArrowDown className="size-4 transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </section>

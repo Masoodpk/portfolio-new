@@ -1,69 +1,74 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   Design tokens
+   "Kerala to the world" — paper, ink and cobalt
    ------------------------------------------------------------------ */
 @theme {
-  --color-ink: #0b0b0c;
-  --color-ink-raised: #111113;
-  --color-panel: #151517;
-  --color-line: #26262a;
-  --color-line-strong: #3a3a40;
-  --color-fg: #f2f1ee;
-  --color-muted: #a3a19c;
-  --color-subtle: #85837e;
-  --color-accent: #ff5f1f;
-  --color-accent-soft: #ff8a4c;
-  --color-amber: #ffb547;
+  --color-paper: #f2eee5;
+  --color-paper-deep: #e9e3d6;
+  --color-paper-raised: #f8f6f0;
+  --color-ink: #141414;
+  --color-ink-soft: #46433d;
+  --color-muted: #6b665c;
+  --color-line: rgb(20 20 20 / 0.12);
+  --color-line-strong: rgb(20 20 20 / 0.28);
+  --color-cobalt: #2340ff;
+  --color-cobalt-deep: #1328c4;
+  --color-cobalt-soft: #dfe3ff;
 
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-serif: var(--font-instrument), "Times New Roman", serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
 
   --breakpoint-xs: 25rem;
 }
 
 :root {
-  --gutter: clamp(1rem, 4vw, 3rem);
-  --header-h: 4.5rem;
-  --section-y: clamp(5rem, 12vw, 10rem);
-  color-scheme: dark;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --header-h: 4.75rem;
+  --section-y: clamp(6rem, 14vw, 12rem);
+  color-scheme: light;
 }
 
-/* ------------------------------------------------------------------
-   Base
-   ------------------------------------------------------------------ */
 @layer base {
   html {
-    background: var(--color-ink);
-    color: var(--color-fg);
+    background: var(--color-paper);
+    color: var(--color-ink);
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    html {
-      scroll-behavior: smooth;
+  /* Lenis drives smooth scrolling; native smooth scroll only as a fallback. */
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not(.lenis) {
+      scroll-behavior: auto;
     }
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
   }
 
   body {
     font-family: var(--font-sans);
-    background: var(--color-ink);
+    background: var(--color-paper);
     overflow-x: clip;
   }
 
   ::selection {
-    background: var(--color-accent);
-    color: var(--color-ink);
+    background: var(--color-cobalt);
+    color: var(--color-paper);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 3px;
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 4px;
     border-radius: 2px;
   }
 
@@ -87,7 +92,7 @@
    ------------------------------------------------------------------ */
 @utility container-page {
   width: 100%;
-  max-width: 90rem;
+  max-width: 96rem;
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
@@ -96,189 +101,112 @@
   padding-block: var(--section-y);
 }
 
-/* Wide, heavy display face for names and section titles */
-@utility font-display-wide {
-  font-family: var(--font-display);
-  font-variation-settings: "wdth" 125;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 0.88;
+/* Editorial serif display */
+@utility font-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
 }
 
-@utility font-display-regular {
-  font-family: var(--font-display);
-  font-variation-settings: "wdth" 100;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.02;
-}
-
-/* Small uppercase annotation used like labels on a technical drawing */
-@utility label-mono {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+/* Small uppercase label — sans, tracked, never monospace */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   line-height: 1rem;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-@utility hairline {
-  border-color: var(--color-line);
-}
-
-/* Subtle film grain to keep large dark surfaces from feeling flat */
-@utility grain {
-  position: relative;
-  isolation: isolate;
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.05;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  }
 }
 
 /* ------------------------------------------------------------------
    Motion
    ------------------------------------------------------------------ */
-@keyframes scroll-cue {
+@keyframes line-up {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-ring {
   0% {
-    transform: scaleY(0);
-    transform-origin: top;
+    box-shadow: 0 0 0 0 rgb(35 64 255 / 0.45);
   }
-  45% {
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-  55% {
-    transform: scaleY(1);
-    transform-origin: bottom;
-  }
+  70%,
   100% {
-    transform: scaleY(0);
-    transform-origin: bottom;
+    box-shadow: 0 0 0 8px rgb(35 64 255 / 0);
   }
 }
 
-@keyframes pulse-dot {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgb(255 95 31 / 0.55);
-  }
-  60% {
-    box-shadow: 0 0 0 6px rgb(255 95 31 / 0);
-  }
+/* Masked line reveal: wrap text in .reveal-line > span */
+.reveal-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.reveal-line > span {
+  display: block;
+  animation: line-up 1.1s var(--ease-out-expo) both;
 }
 
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(1.25rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+.animate-fade {
+  animation: fade-in 1.2s var(--ease-out-expo) both;
 }
 
-@keyframes slow-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s ease-out infinite;
 }
 
-@keyframes snap-ring {
-  from {
-    opacity: 0.9;
-    transform: translate(-50%, -50%) scale(0.2);
-  }
-  to {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* One-shot shockwave fired by the 3D hand at the moment of the snap */
-.snap-ring {
-  width: min(70%, 34rem);
-  aspect-ratio: 1;
-  border-radius: 9999px;
-  border: 1px solid var(--color-accent);
-  box-shadow: 0 0 40px -8px rgb(255 95 31 / 0.6), inset 0 0 40px -8px rgb(255 95 31 / 0.4);
-  animation: snap-ring 0.9s var(--ease-out-expo) forwards;
-}
-
-@keyframes dash-flow {
-  to {
-    stroke-dashoffset: -24;
-  }
-}
-
-/* Connection between related technologies in the skills map */
-.skill-edge-lit {
-  animation: dash-flow 1.2s linear infinite;
-}
-
-.animate-scroll-cue {
-  animation: scroll-cue 2.4s var(--ease-in-out-quart) infinite;
-}
-
-.animate-pulse-dot {
-  animation: pulse-dot 2.4s ease-out infinite;
-}
-
-.animate-rise {
-  animation: rise-in 0.7s var(--ease-out-expo) both;
-}
-
-.animate-slow-spin {
-  animation: slow-spin 60s linear infinite;
-}
-
-/* ------------------------------------------------------------------
-   Scroll-driven motion (CSS only, progressive enhancement)
-   ------------------------------------------------------------------ */
-.timeline-progress {
-  display: none;
-}
-
-@keyframes grow-y {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-
-@keyframes reveal-up {
-  from {
-    opacity: 0;
-    transform: translateY(2.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
+/* Scroll-linked parallax (CSS only). --parallax sets direction and distance. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .timeline-progress {
-      display: block;
-      transform-origin: top;
-      animation: grow-y linear both;
-      animation-timeline: view();
-      animation-range: cover 20% cover 70%;
+    @keyframes drift-x {
+      from {
+        transform: translateX(calc(var(--parallax, 10vw) * -1));
+      }
+      to {
+        transform: translateX(var(--parallax, 10vw));
+      }
     }
-
-    .reveal {
-      animation: reveal-up linear both;
+    @keyframes drift-y {
+      from {
+        transform: translateY(var(--parallax, 8vh));
+      }
+      to {
+        transform: translateY(calc(var(--parallax, 8vh) * -1));
+      }
+    }
+    @keyframes drift-out {
+      to {
+        transform: translateX(var(--drift, 8vw));
+      }
+    }
+    /* Hero name lines slide apart as the hero leaves the viewport */
+    .hero-drift {
+      animation: drift-out linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 70%;
+      animation-range: exit -10% exit 100%;
+    }
+    .parallax-x {
+      animation: drift-x linear both;
+      animation-timeline: view();
+    }
+    .parallax-y {
+      animation: drift-y linear both;
+      animation-timeline: view();
     }
   }
 }

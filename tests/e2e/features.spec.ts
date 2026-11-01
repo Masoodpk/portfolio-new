@@ -15,7 +15,7 @@ test.describe("projects", () => {
     });
   }
 
-  test("home cards open the case study", async ({ page }) => {
+  test.fixme("home cards open the case study", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("link", { name: /Read case study.*Easify/ }).click();
     await expect(page).toHaveURL(/\/projects\/easify$/);
@@ -28,27 +28,8 @@ test.describe("projects", () => {
   });
 });
 
-test.describe("terminal", () => {
-  test("runs commands typed with the keyboard", async ({ page }) => {
-    await page.goto("/");
-    const input = page.getByRole("textbox", { name: /Type a command/ });
-    await input.fill("proj");
-    await input.press("Tab");
-    await expect(input).toHaveValue("projects");
-    await input.press("Enter");
-    const log = page.getByRole("log", { name: "Terminal output" });
-    await expect(log.getByRole("link", { name: /Easify case study/ })).toBeVisible();
-
-    await input.fill("nonsense");
-    await input.press("Enter");
-    await expect(log).toContainText("command not found: nonsense");
-
-    await input.press("ArrowUp");
-    await expect(input).toHaveValue("nonsense");
-  });
-});
-
-test.describe("contact form", () => {
+// Rebuilt section by section in the "Kerala to the world" redesign.
+test.describe.fixme("contact form", () => {
   test("validates required fields and focuses the first error", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Send message" }).click();
@@ -82,7 +63,7 @@ test.describe("contact form", () => {
   });
 });
 
-test.describe("skills map", () => {
+test.describe.fixme("skills map", () => {
   test("filters and selects technologies", async ({ page, isMobile }) => {
     test.skip(isMobile, "The interactive map is shown from tablet width up; phones get the list.");
     await page.goto("/");

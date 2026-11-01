@@ -3,11 +3,12 @@ import { profile } from "@/content/profile";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line">
-      <div className="container-page flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between">
-        <p className="label-mono text-subtle">
-          {profile.name} <span className="mx-2 text-line-strong">/</span> {profile.title}
-          <span className="mx-2 text-line-strong">/</span> {profile.location}
+    <footer className="relative z-10 border-t border-line bg-paper">
+      <div className="container-page flex flex-col gap-6 py-10 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between">
+        <p>
+          <span className="font-display text-xl text-ink">{profile.name}</span>
+          <span className="mx-3 text-line-strong">—</span>
+          {profile.title}, {profile.location}
         </p>
         <ul className="flex flex-wrap gap-x-6 gap-y-3">
           {profile.socials.map((social) => (
@@ -16,7 +17,7 @@ export function SiteFooter() {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="label-mono inline-flex items-center gap-1 text-subtle transition-colors hover:text-fg"
+                className="inline-flex items-center gap-1 font-medium text-ink transition-colors hover:text-cobalt"
               >
                 {social.label}
                 <ArrowUpRight className="size-3.5" aria-hidden="true" />
@@ -25,10 +26,7 @@ export function SiteFooter() {
             </li>
           ))}
           <li>
-            <a
-              href={`mailto:${profile.email}`}
-              className="label-mono text-subtle transition-colors hover:text-fg"
-            >
+            <a href={`mailto:${profile.email}`} className="font-medium text-ink transition-colors hover:text-cobalt">
               Email
             </a>
           </li>

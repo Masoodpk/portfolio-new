@@ -134,6 +134,7 @@ export class ParticleWorld {
   private stage = 0;
   private stageTarget = 0;
   private layout: StageLayout = { ...STAGES[0] };
+  private baseOpacity: number;
   private spin = 0;
   private start = performance.now();
   private last = performance.now();
@@ -147,6 +148,8 @@ export class ParticleWorld {
   ) {
     this.renderer = new WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: "high-performance" });
     this.renderer.setClearColor(0x000000, 0);
+    // Phones: text and particles share a narrow screen, so keep dots quieter.
+    this.baseOpacity = options.compact ? 0.55 : 1;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, options.compact ? 1.5 : 2));
     this.camera.position.set(0, 0, 4.4);
     this.scene.add(this.group);
@@ -173,8 +176,7 @@ export class ParticleWorld {
       uPointerStrength: { value: 0 },
       uColor: { value: new Color("#2340ff") },
       uFade: { value: new Color("#f2eee5") },
-      // Phones: text and particles share a narrow screen, so keep dots quieter.
-      uOpacity: { value: options.compact ? 0.55 : 1 },
+      uOpacity: { value: this.baseOpacity },
     };
     const points = new Points(
       geometry,
@@ -299,12 +301,13 @@ export class ParticleWorld {
     const b = STAGES[Math.min(i + 1, STAGES.length - 1)];
     const ease = f * f * (3 - 2 * f);
     const portrait = this.width < this.height * 0.9;
-    for (const key of ["x", "y", "scale", "tiltX", "spinSpeed"] as const) {
+    for (const key of ["x", "y", "scale", "tiltX", "spinSpeed", "opacity"] as const) {
       const from = portrait ? (a.mobile?.[key] ?? a[key]) : a[key];
       const to = portrait ? (b.mobile?.[key] ?? b[key]) : b[key];
       this.layout[key] = from + (to - from) * ease;
     }
 
+    u.uOpacity.value = this.baseOpacity * this.layout.opacity;
     this.spin = (this.spin + dt * this.layout.spinSpeed) % (Math.PI * 2);
     // On the globe, turn to face the Arabian Sea between Kerala and the Gulf.
     const globeWeight = Math.max(0, 1 - Math.abs(this.stage - 5));

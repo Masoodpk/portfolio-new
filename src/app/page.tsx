@@ -1,8 +1,8 @@
+import { About } from "@/components/sections/About";
 import { Hero } from "@/components/sections/Hero";
 import { UpcomingSection } from "@/components/sections/UpcomingSection";
 import { JourneyRail } from "@/components/world/JourneyRail";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { about } from "@/content/profile";
 import { homeJsonLd } from "@/lib/structured-data";
 
 export default function HomePage() {
@@ -12,7 +12,7 @@ export default function HomePage() {
       <JourneyRail />
       <Hero />
       {/* Sections below are rebuilt one at a time in the new design. */}
-      <UpcomingSection id="about" stage={1} index="01 — About" title={about.heading.join(" ")} summary={about.lead} />
+      <About />
       <UpcomingSection
         id="experience"
         stage={2}

@@ -8,23 +8,25 @@ export type StageLayout = {
   scale: number;
   tiltX: number;
   spinSpeed: number;
+  /** Multiplies the base particle opacity, so text-heavy stages can quieten the dots */
+  opacity: number;
   /** Overrides for portrait / phone screens */
   mobile?: Partial<Omit<StageLayout, "mobile">>;
 };
 
 export const STAGES: StageLayout[] = [
   // 0 Hero — a seed planet sitting right of the headline
-  { x: 0.82, y: 0.08, scale: 0.68, tiltX: 0.25, spinSpeed: 0.12, mobile: { x: 0.42, y: 0.62, scale: 0.42 } },
-  // 1 About — initials, front and centre
-  { x: 0.62, y: 0.02, scale: 1.0, tiltX: 0, spinSpeed: 0, mobile: { x: 0, y: 0.62, scale: 0.5 } },
+  { x: 0.82, y: 0.08, scale: 0.68, tiltX: 0.25, spinSpeed: 0.12, opacity: 1, mobile: { x: 0.42, y: 0.62, scale: 0.42 } },
+  // 1 About — initials above the portrait, beside the text
+  { x: 0.98, y: 0.14, scale: 0.66, tiltX: 0, spinSpeed: 0, opacity: 1, mobile: { x: 0, y: 0.62, scale: 0.44, opacity: 0.5 } },
   // 2 Experience — the road travelled
-  { x: 0.9, y: 0, scale: 0.85, tiltX: 0.15, spinSpeed: 0.08, mobile: { x: 0, y: 0, scale: 0.6 } },
+  { x: 0.9, y: 0, scale: 0.85, tiltX: 0.15, spinSpeed: 0.08, opacity: 1, mobile: { x: 0, y: 0, scale: 0.6 } },
   // 3 Skills — five clusters
-  { x: 0.8, y: 0, scale: 0.8, tiltX: 0.2, spinSpeed: 0.1, mobile: { x: 0, y: 0, scale: 0.55 } },
+  { x: 0.8, y: 0, scale: 0.8, tiltX: 0.2, spinSpeed: 0.1, opacity: 1, mobile: { x: 0, y: 0, scale: 0.55 } },
   // 4 Projects — a field under construction
-  { x: 0, y: -0.55, scale: 0.9, tiltX: 0.42, spinSpeed: 0.05, mobile: { x: 0, y: -0.7, scale: 0.6 } },
+  { x: 0, y: -0.55, scale: 0.9, tiltX: 0.42, spinSpeed: 0.05, opacity: 1, mobile: { x: 0, y: -0.7, scale: 0.6 } },
   // 5 Contact — the globe, Kerala to the Gulf
-  { x: 0.78, y: -0.02, scale: 0.82, tiltX: 0.35, spinSpeed: 0, mobile: { x: 0.1, y: -0.78, scale: 0.6 } },
+  { x: 0.78, y: -0.02, scale: 0.82, tiltX: 0.35, spinSpeed: 0, opacity: 1, mobile: { x: 0.1, y: -0.78, scale: 0.6 } },
 ];
 
 export const ORIGIN = { name: "Kozhikode", lat: 11.2588, lon: 75.7804 };

@@ -1,21 +1,21 @@
 # Masood PK — Portfolio
 
 Interactive portfolio of **Masood PK**, Software Developer (Vue.js, Nuxt.js, React, Next.js).
-The hero is a real rigged 3D hand that turns, builds tension and **snaps** as you scroll. Everything
-a recruiter needs (who, what, experience, stack, projects, CV, contact) is readable in the first
-screen and works without WebGL or JavaScript.
+The theme is **"Kerala to the world"**: an editorial paper-and-ink layout with one cobalt accent,
+and a single particle world behind the page that changes shape as you scroll, from a seed planet
+in Kozhikode to a globe with flight paths to the Gulf. Everything a recruiter needs (who, what,
+experience, stack, projects, CV, contact) is readable in the first screen and works without WebGL.
 
 ## Highlights
 
-- **Scroll-driven 3D hero:** a Blender-rigged hand (React Three Fiber). Scrolling scrubs the build-up, the snap plays in real time, then the hand settles.
-- **Recruiter summary** right under the hero, plus a one-click CV download in the header, hero and contact section.
-- **Case-study pages** for each project at `/projects/<slug>`, with role, approach and interface previews.
-- **Interactive skills map** that separates *used professionally* from *studied/personal*. No fake percentages.
-- **Developer terminal** (`help`, `projects`, `cv` …) with a fixed command list. It never evaluates input.
+- **One particle world, six shapes:** about 11,000 points morph per section: planet (hero) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
+- **Scroll storytelling in CSS:** masked line reveals, a lead paragraph that inks in word by word, parallax and a pinned sideways "road trip" through the career stops, all with CSS scroll-driven animations.
+- **Recruiter-first:** CV download in the header, hero and contact section; current role first; case-study pages at `/projects/<slug>`.
+- **Honest skills:** each skill is marked *used at work* or *studied & personal projects*, with a one-line note. No percentages. Picking a category spotlights its particle cluster.
 - **Contact form** with shared validation, a honeypot, rate limiting and a mailto fallback.
-- **Performance:** the home page scores Lighthouse 100 / 100 / 100 / 100 on mobile and desktop (local production build). three.js loads lazily and stays out of the initial bundle.
-- **Accessibility:** WCAG 2.2 AA (axe-core in CI tests), keyboard navigation, a skip link and reduced-motion support.
-- **SEO:** metadata, canonical URLs, generated Open Graph images, JSON-LD (`Person`, `ProfilePage`, `WebSite`, `BreadcrumbList`), sitemap and robots.
+- **Performance:** three.js loads only after the page is idle and never for reduced motion or Data Saver; the first paint is plain HTML and CSS.
+- **Accessibility:** WCAG 2.2 AA (axe-core in the test suite), keyboard navigation, a skip link and reduced-motion fallbacks for every animation.
+- **SEO:** metadata, canonical URLs, Open Graph cards, JSON-LD (`Person`, `ProfilePage`, `WebSite`, `BreadcrumbList`), sitemap and robots.
 
 ## Tech stack
 
@@ -23,13 +23,14 @@ screen and works without WebGL or JavaScript.
 | --- | --- |
 | Framework | Next.js 16 (App Router, Cache Components, Turbopack), React 19, TypeScript |
 | Styling | Tailwind CSS v4 with design tokens in `src/app/globals.css` |
-| 3D | three.js, @react-three/fiber, @react-three/drei (meshopt-compressed GLB) |
-| Motion | CSS scroll-driven animations + a small rAF loop for the 3D scene |
+| 3D | three.js (one `Points` mesh with a custom shader; globe land data pre-computed from Natural Earth) |
+| Motion | CSS scroll-driven animations, Lenis smooth scrolling (fine pointers only) |
 | Icons | lucide-react |
 | Email | Resend HTTP API (optional) |
 | Tests | Vitest (unit) and Playwright + axe-core (end-to-end, accessibility, SEO) |
 
-Fonts: Archivo (display), Geist (body) and Geist Mono (labels), self-hosted via `next/font`.
+Fonts: Instrument Serif (display) and Manrope (body), self-hosted via `next/font`.
+Colours: paper `#F2EEE5`, ink `#141414`, cobalt `#2340FF` (tokens in `src/app/globals.css`).
 
 ## Getting started
 
@@ -50,9 +51,10 @@ npm run dev                  # http://localhost:3000
 | `npm run check` | Type-check, lint, unit tests and production build |
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:e2e` | End-to-end, accessibility and SEO tests (Playwright with your local Chrome; serves the last production build) |
-| `npm run model` | Re-compress the hand model from `assets-src/models` |
-| `npm run poster` | Re-capture the static hand poster (needs `npm run dev` running) |
 | `npm run shots` | Re-capture project screenshots from the live sites |
+| `npm run og` | Re-render the Open Graph share cards into `assets-src/og/` (uses local Chrome) |
+| `npm run icons` | Re-draw the favicon, Apple touch icon and PWA icons |
+| `npm run globe` | Rebuild the globe's land points (`public/data/land-points.bin`) |
 
 To run end-to-end tests against a fresh production build:
 
@@ -68,17 +70,17 @@ src/
   app/                    Routes, metadata, sitemap/robots/manifest, OG images, /api/contact
     projects/[slug]/      Case-study pages (statically generated)
   components/
-    layout/               Header (nav, mobile menu), footer, skip link, cursor
-    sections/             Hero, About, Experience, Skills (+ map), Projects, Console, Contact
+    layout/               Header (nav, mobile menu), footer, skip link, smooth scroll
+    sections/             Hero, About, Experience, Skills, Projects, Contact
     projects/             Project visuals and Easify interface schematics
-    three/                3D hand: lazy island, scene, timeline maths, error boundary
-    ui/ seo/              Buttons, tags, frames, JSON-LD
+    world/                Particle world: shapes, stage layouts, shader, canvas wiring, journey rail
+    ui/ seo/              Browser frame, JSON-LD
   content/                ← all personal data lives here
-  lib/                    Site config, structured data, contact validation, terminal, layouts
+  lib/                    Site config, structured data, contact validation, OG cards
   proxy.ts                Real 404s for unknown case studies
-assets-src/               Source assets (original GLB, OG fonts) — not served
-public/                   CV, compressed model, images, icons
-scripts/                  Poster and screenshot capture
+assets-src/               OG fonts and pre-rendered share cards — not served directly
+public/                   CV, images, icons, globe land points
+scripts/                  Screenshots, OG cards, icons, globe data
 tests/unit, tests/e2e     Vitest and Playwright suites
 docs/SEO.md               Search Console, analytics and SEO notes
 ```
@@ -96,7 +98,7 @@ All text comes from **`src/content/`**, so you never need to touch a component t
 | `navigation.ts` | Header navigation order |
 
 **Add a project:** append an object to `projects` in `src/content/projects.ts`. Its `slug`
-becomes `/projects/<slug>`, and it's added to the sitemap, terminal and home page automatically.
+becomes `/projects/<slug>`, and it's added to the sitemap and home page automatically (run `npm run og` for its share card).
 Put images in `public/images/projects/<slug>/` (WebP, about 2000px wide for desktop shots) and
 reference them in `visuals`. The first visual is used as the cover.
 
@@ -106,19 +108,17 @@ reference them in `visuals`. The first visual is used as the cover.
 **Replace the portrait:** replace `src/assets/masood-pk.png` (used on the page) and
 `public/images/masood-pk.jpg` (used in structured data).
 
-## Replacing the 3D hand
+## The particle world
 
-1. Export from Blender as **glTF Binary (.glb)**, with the armature, skinning and these actions
-   (names matter): `Snap` (preparation → release → hold) and `Recovery` (from the Snap end pose).
-2. Save it as `assets-src/models/hand_snap_v2.glb` and run `npm run model`. This writes the compressed
-   `public/models/hand.glb` (meshopt geometry, 1024px WebP textures).
-3. If the timing of the snap changes, update `SNAP_CLIP` in `src/components/three/hand-timeline.ts`
-   (the release is the frame where the middle finger moves fastest).
-4. With `npm run dev` running, run `npm run poster` to refresh the static fallback image.
+`src/components/world/` holds the whole 3D layer:
 
-The scene is only downloaded after the page is idle (desktop) or on the first scroll or touch (phones).
-It never loads for reduced-motion or Data Saver users, and it falls back to the poster if WebGL
-is unavailable or the model fails to load.
+- `shapes.ts` generates each shape as the same number of points (seed planet, initials, road, clusters, wave, globe).
+- `stages.ts` sets where each shape sits per section (position, scale, tilt, spin, opacity, facing), with phone overrides.
+- `ParticleWorld.ts` is the renderer: one shader blends between neighbouring shapes as the stage changes.
+- `WorldCanvas.tsx` loads it when the browser is idle and maps scroll to a stage. Each section opts in with `data-world-stage="N"`; `data-world-hold` sets how far through the section the next morph starts.
+
+It never loads for reduced-motion or Data Saver users; the page then shows a static dotted globe
+(`StaticGlobe.tsx`) and every scroll animation falls back to its finished state.
 
 ## Environment variables
 
@@ -158,12 +158,10 @@ with the same environment variables.
 ## Quality checklist
 
 - `npm run check` passes (types, lint, unit tests, build).
-- `npm run test:e2e` passes (hero and 3D fallbacks, case studies, terminal, form, axe, SEO).
+- `npm run test:e2e` passes (case studies, skills, contact form, axe, SEO).
 - Lighthouse on the deployed URL, both mobile and desktop.
 
 ## License
 
 Code and personal content: all rights reserved © Masood PK. Fonts are licensed under the SIL Open Font License.
-
-The hand model's original mesh came from a third-party source. Confirm its license, and add any
-required attribution here, before publishing.
+Globe land data: Natural Earth (public domain) via `world-atlas`.

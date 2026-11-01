@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { profile } from "@/content/profile";
 import type { ParticleWorld } from "./ParticleWorld";
+import { WORLD_FOCUS_EVENT } from "./stages";
 
 const COMPACT_QUERY = "(max-width: 1023px)";
 
@@ -13,6 +15,13 @@ const COMPACT_QUERY = "(max-width: 1023px)";
  */
 export function WorldCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pathname = usePathname();
+
+  // A client-side navigation swaps the sections; re-read the stage for the new page.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => window.dispatchEvent(new Event("scroll")));
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -122,6 +131,8 @@ function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
   };
   const onLeave = () => world.setPointer(null);
   const onVisibility = () => (document.hidden ? world.pause() : world.play());
+  // Sections can spotlight part of the world, e.g. a skills cluster.
+  const onFocus = (event: Event) => world.setFocus((event as CustomEvent<number | null>).detail);
   const observer = new ResizeObserver(() => {
     world.resize();
     onScroll();
@@ -133,6 +144,7 @@ function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
   window.addEventListener("pointermove", onPointer, { passive: true });
   document.documentElement.addEventListener("pointerleave", onLeave);
   document.addEventListener("visibilitychange", onVisibility);
+  window.addEventListener(WORLD_FOCUS_EVENT, onFocus);
 
   return [
     () => cancelAnimationFrame(frame),
@@ -141,5 +153,6 @@ function wire(world: ParticleWorld, canvas: HTMLCanvasElement) {
     () => window.removeEventListener("pointermove", onPointer),
     () => document.documentElement.removeEventListener("pointerleave", onLeave),
     () => document.removeEventListener("visibilitychange", onVisibility),
+    () => window.removeEventListener(WORLD_FOCUS_EVENT, onFocus),
   ];
 }

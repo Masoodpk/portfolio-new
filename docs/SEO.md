@@ -5,7 +5,7 @@
 | Area | Where |
 | --- | --- |
 | Titles, descriptions, keywords, canonical URLs | `src/app/layout.tsx`, `src/app/projects/[slug]/page.tsx`, `src/lib/site.ts` |
-| Open Graph + X/Twitter cards (generated 1200×630 images) | `src/app/opengraph-image.tsx`, `src/app/projects/[slug]/opengraph-image.tsx`, `src/lib/og.tsx` |
+| Open Graph + X/Twitter cards (1200×630, pre-rendered by `npm run og`) | `src/app/opengraph-image.tsx`, `src/app/projects/[slug]/opengraph-image.tsx`, `src/lib/og.ts`, `assets-src/og/` |
 | Structured data: `WebSite`, `ProfilePage`, `Person`, `BreadcrumbList`, `CreativeWork` | `src/lib/structured-data.ts` |
 | `sitemap.xml`, `robots.txt`, web manifest, icons | `src/app/sitemap.ts`, `src/app/robots.ts`, `src/app/manifest.ts`, `src/app/icon.svg`, `src/app/apple-icon.png` |
 | Real 404s for unknown case studies | `src/proxy.ts` |

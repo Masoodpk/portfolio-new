@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { skills } from "@/content/skills";
 import { projects } from "@/content/projects";
 import { navItems } from "@/content/navigation";
-import { GRAPH, layoutSkills, relatedEdges } from "@/lib/skills-layout";
+import { skillCategories } from "@/content/skills";
+import { timeline } from "@/content/experience";
 
 describe("content integrity", () => {
   it("has unique skill ids and only references existing skills", () => {
@@ -28,31 +29,20 @@ describe("content integrity", () => {
   });
 });
 
-describe("skills layout", () => {
-  it("places every skill inside the graph", () => {
-    const positions = layoutSkills(skills);
-    expect(positions.size).toBe(skills.length);
-    for (const { x, y } of positions.values()) {
-      expect(x).toBeGreaterThan(0);
-      expect(x).toBeLessThan(GRAPH.width);
-      expect(y).toBeGreaterThan(0);
-      expect(y).toBeLessThan(GRAPH.height);
-    }
+describe("design data", () => {
+  it("gives every skill a category that has a particle cluster", () => {
+    // The skills stage draws exactly five clusters, one per category, in order.
+    expect(skillCategories).toHaveLength(5);
+    const ids = skillCategories.map((c) => c.id);
+    for (const skill of skills) expect(ids).toContain(skill.category);
   });
 
-  it("does not stack two skills on the same spot", () => {
-    const points = [...layoutSkills(skills).values()];
-    for (let i = 0; i < points.length; i++) {
-      for (let j = i + 1; j < points.length; j++) {
-        const distance = Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y);
-        expect(distance).toBeGreaterThan(40);
-      }
+  it("places every located career stop on the map", () => {
+    for (const entry of timeline) {
+      if (!entry.location) continue;
+      expect(entry.coordinates, entry.id).toBeDefined();
+      expect(Math.abs(entry.coordinates!.lat)).toBeLessThanOrEqual(90);
+      expect(Math.abs(entry.coordinates!.lon)).toBeLessThanOrEqual(180);
     }
-  });
-
-  it("deduplicates undirected relationships", () => {
-    const edges = relatedEdges(skills);
-    const keys = edges.map(([a, b]) => [a, b].sort().join("|"));
-    expect(new Set(keys).size).toBe(keys.length);
   });
 });

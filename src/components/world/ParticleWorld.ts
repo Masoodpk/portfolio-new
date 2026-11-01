@@ -27,6 +27,7 @@ const vertexShader = /* glsl */ `
   attribute vec3 aS4;
   attribute vec3 aS5;
   attribute vec4 aRand;
+  attribute float aGroup;
 
   uniform float uStage;
   uniform float uTime;
@@ -35,6 +36,8 @@ const vertexShader = /* glsl */ `
   uniform float uPixelRatio;
   uniform vec3 uPointer;
   uniform float uPointerStrength;
+  uniform float uFocus;
+  uniform float uFocusAmount;
 
   varying float vDepth;
   varying float vAlpha;
@@ -62,11 +65,15 @@ const vertexShader = /* glsl */ `
     float d = length(away);
     p += normalize(away + 1e-5) * uPointerStrength * smoothstep(0.38, 0.0, d) * 0.22;
 
+    // Skills stage: the focused category's cluster grows, the rest recede.
+    float focus = w(s, 3.0) * uFocusAmount;
+    float inFocus = 1.0 - step(0.5, abs(aGroup - uFocus));
+
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = uSize * uPixelRatio * (0.6 + aRand.z * 0.8) / -mv.z;
+    gl_PointSize = uSize * uPixelRatio * (0.6 + aRand.z * 0.8) * (1.0 + focus * inFocus * 0.7) / -mv.z;
     vDepth = smoothstep(2.6, 5.4, -mv.z);
-    vAlpha = t;
+    vAlpha = t * mix(1.0, 0.3 + inFocus * 0.7, focus);
   }
 `;
 
@@ -133,6 +140,7 @@ export class ParticleWorld {
   private pointerTarget = 0;
   private stage = 0;
   private stageTarget = 0;
+  private focusTarget = 0;
   private layout: StageLayout = { ...STAGES[0] };
   private baseOpacity: number;
   private spin = 0;
@@ -165,6 +173,10 @@ export class ParticleWorld {
     const rand = new Float32Array(count * 4);
     for (let i = 0; i < rand.length; i++) rand[i] = Math.random();
     geometry.setAttribute("aRand", new BufferAttribute(rand, 4));
+    // Matches clusters(): particle i belongs to group i % 5.
+    const group = new Float32Array(count);
+    for (let i = 0; i < count; i++) group[i] = i % 5;
+    geometry.setAttribute("aGroup", new BufferAttribute(group, 1));
 
     this.uniforms = {
       uStage: { value: 0 },
@@ -174,6 +186,8 @@ export class ParticleWorld {
       uPixelRatio: { value: this.renderer.getPixelRatio() },
       uPointer: { value: new Vector3(10, 10, 10) },
       uPointerStrength: { value: 0 },
+      uFocus: { value: -1 },
+      uFocusAmount: { value: 0 },
       uColor: { value: new Color("#2340ff") },
       uFade: { value: new Color("#f2eee5") },
       uOpacity: { value: this.baseOpacity },
@@ -232,6 +246,12 @@ export class ParticleWorld {
       geometry.setAttribute("aT", new BufferAttribute(ts, 1));
       this.arcs.add(new Line(geometry, material));
     }
+  }
+
+  /** Highlights one skills cluster (category index), or none. */
+  setFocus(group: number | null) {
+    if (group !== null) this.uniforms.uFocus.value = group;
+    this.focusTarget = group === null ? 0 : 1;
   }
 
   /** Continuous stage index: 0 = hero … 5 = globe. */
@@ -293,6 +313,7 @@ export class ParticleWorld {
     u.uTime.value = time;
     u.uIntro.value = Math.min(1, u.uIntro.value + dt / 2.4);
     u.uPointerStrength.value += (this.pointerTarget - u.uPointerStrength.value) * (1 - Math.exp(-dt * 6));
+    u.uFocusAmount.value += (this.focusTarget - u.uFocusAmount.value) * (1 - Math.exp(-dt * 5));
 
     // Blend the layout (position, scale, tilt) between neighbouring stages.
     const i = Math.floor(this.stage);
@@ -335,7 +356,7 @@ export class ParticleWorld {
 
     const arc = this.arcUniforms;
     arc.uTime.value = time;
-    arc.uOpacity.value = globeWeight * 0.9;
+    arc.uOpacity.value = globeWeight * 0.9 * u.uOpacity.value;
     arc.uDraw.value += ((globeWeight > 0.6 ? 1 : 0) - arc.uDraw.value) * (1 - Math.exp(-dt * 1.6));
     this.arcs.visible = globeWeight > 0.01;
 

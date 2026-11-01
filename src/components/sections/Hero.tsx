@@ -20,7 +20,7 @@ export function Hero() {
       className="relative flex min-h-svh flex-col overflow-hidden pt-[var(--header-h)]"
     >
       {/* Shown only when the particle world can't run (reduced motion, no WebGL). */}
-      <StaticGlobe className="pointer-events-none absolute right-[-12vw] top-1/2 hidden w-[62vw] max-w-[52rem] -translate-y-1/2 opacity-80 [[data-world=static]_&]:block" />
+      <StaticGlobe className="pointer-events-none absolute right-[-6vw] top-[45%] hidden w-[46vw] max-w-[40rem] -translate-y-1/2 opacity-45 [[data-world=static]_&]:block" />
 
       <div className="container-page relative flex flex-1 flex-col justify-between gap-10 pb-8 pt-6 md:pt-10">
         <div className="animate-fade flex flex-wrap items-center justify-between gap-4" style={{ animationDelay: "600ms" }}>

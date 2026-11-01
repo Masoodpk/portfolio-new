@@ -12,7 +12,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
-    "globe": "node scripts/build-globe-points.mjs"
+    "globe": "node scripts/build-globe-points.mjs",
+    "og": "node scripts/build-og-images.mjs",
+    "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "lenis": "^1.3.27",

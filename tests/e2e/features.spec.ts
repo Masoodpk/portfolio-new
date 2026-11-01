@@ -15,7 +15,7 @@ test.describe("projects", () => {
     });
   }
 
-  test.fixme("home cards open the case study", async ({ page }) => {
+  test("home cards open the case study", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("link", { name: /Read case study.*Easify/ }).click();
     await expect(page).toHaveURL(/\/projects\/easify$/);
@@ -28,8 +28,7 @@ test.describe("projects", () => {
   });
 });
 
-// Rebuilt section by section in the "Kerala to the world" redesign.
-test.describe.fixme("contact form", () => {
+test.describe("contact form", () => {
   test("validates required fields and focuses the first error", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Send message" }).click();
@@ -63,15 +62,16 @@ test.describe.fixme("contact form", () => {
   });
 });
 
-test.describe.fixme("skills map", () => {
-  test("filters and selects technologies", async ({ page, isMobile }) => {
-    test.skip(isMobile, "The interactive map is shown from tablet width up; phones get the list.");
+test.describe("skills", () => {
+  test("highlights a category and labels how each skill was used", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "APIs", exact: true }).click();
-    await expect(page.getByRole("button", { name: "APIs", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: /^GraphQL,/ }).click();
-    await expect(page.locator("aside").getByRole("heading", { name: "GraphQL" })).toBeVisible();
-    await expect(page.locator("aside")).toContainText("Studied & personal projects");
+    const apis = page.getByRole("button", { name: "APIs", exact: true });
+    await apis.click();
+    await expect(apis).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "false");
+    await expect(page.locator("#skills")).toContainText("GraphQL, Studied & personal projects");
+    await apis.click();
+    await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
   });
 });
 

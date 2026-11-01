@@ -1,6 +1,5 @@
 import { getProject, projects } from "@/content/projects";
-import { profile } from "@/content/profile";
-import { ogSize, renderOgCard } from "@/lib/og";
+import { ogImage, ogSize } from "@/lib/og";
 
 export const alt = "Case study";
 export const size = ogSize;
@@ -12,11 +11,5 @@ export function generateStaticParams() {
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = getProject(slug) ?? projects[0];
-  return renderOgCard({
-    eyebrow: `Case study ${project.index} · ${project.context}`,
-    title: project.name,
-    subtitle: project.tagline,
-    footer: `${profile.name} · ${project.stack.join(" · ")}`,
-  });
+  return ogImage((getProject(slug) ?? projects[0]).slug);
 }

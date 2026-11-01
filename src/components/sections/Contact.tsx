@@ -1,94 +1,92 @@
-import { ArrowUpRight, Download } from "lucide-react";
-import { ButtonLink } from "@/components/ui/Button";
+import { ArrowDownToLine, ArrowUpRight } from "lucide-react";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { profile } from "@/content/profile";
+import { DESTINATIONS, ORIGIN } from "@/components/world/stages";
 
 export function Contact() {
   return (
-    <section
-      id="contact"
-      aria-labelledby="contact-title"
-      className="grain section-y relative overflow-hidden"
-    >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50%_60%_at_20%_100%,rgb(255_95_31/0.12),transparent_70%)]"
-      />
-      <div className="container-page">
-        <div className="hairline flex items-center justify-between border-t pt-4 text-subtle">
-          <p className="label-mono">
-            <span className="text-accent">05</span>
-            <span className="mx-3 text-line-strong">/</span>
-            Contact
-          </p>
-          <p className="label-mono hidden items-center gap-3 sm:flex">
-            <span className="animate-pulse-dot size-2 rounded-full bg-accent" aria-hidden="true" />
-            {profile.availability}
-          </p>
+    <section id="contact" data-world-stage="5" aria-labelledby="contact-title" className="relative pb-[var(--section-y)]">
+      <div className="container-page flex min-h-svh flex-col justify-center py-[var(--section-y)]">
+        <div className="eyebrow flex items-center gap-4 text-ink lg:w-7/12">
+          <span className="text-cobalt">05</span>
+          <span>Contact</span>
+          <span className="h-px flex-1 bg-line" aria-hidden="true" />
         </div>
 
-        <h2
-          id="contact-title"
-          className="reveal font-display-regular mt-12 max-w-[16ch] text-[clamp(2.5rem,7vw,6.5rem)]"
-        >
-          Have an Opportunity or an <span className="text-accent">Interesting Challenge?</span>
-        </h2>
+        <div className="mt-12 lg:w-7/12">
+          <h2 id="contact-title" className="font-display text-[clamp(3.5rem,8vw,8.5rem)]">
+            From Kerala <span className="block italic text-cobalt">to the world.</span>
+          </h2>
+          <p className="mt-8 max-w-[46ch] text-lg leading-relaxed text-ink-soft">
+            I&apos;m open to connecting with teams looking for a developer who enjoys building reliable, user-focused
+            web applications.
+          </p>
 
-        <div className="mt-14 grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-8">
-          <div className="flex flex-col lg:col-span-5">
-            <p className="max-w-[44ch] text-lg leading-relaxed text-muted">
-              I&apos;m open to connecting with teams looking for a developer who enjoys building
-              reliable, user-focused web applications.
-            </p>
+          <p className="eyebrow mt-12 text-muted">Email me directly</p>
+          <a
+            href={`mailto:${profile.email}`}
+            className="font-display group mt-3 inline-flex max-w-full items-center gap-3 break-all border-b border-line-strong pb-2 text-[clamp(1.75rem,3.6vw,3rem)] leading-tight transition-colors hover:border-cobalt hover:text-cobalt"
+          >
+            {profile.email}
+            <ArrowUpRight
+              className="size-[0.7em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
+              aria-hidden="true"
+            />
+          </a>
 
-            <p className="label-mono mt-12 text-subtle">Email me directly</p>
+          <div className="mt-10 flex flex-col gap-3 xs:flex-row xs:flex-wrap xs:items-center">
             <a
-              href={`mailto:${profile.email}`}
-              className="font-display-regular group mt-3 inline-flex max-w-full items-center gap-3 self-start break-all border-b border-line-strong pb-2 text-[clamp(1.25rem,2.6vw,2rem)] transition-colors hover:border-accent hover:text-accent"
+              href={profile.cv.href}
+              download={profile.cv.fileName}
+              className="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-cobalt px-6 text-sm font-semibold text-paper transition-colors hover:bg-cobalt-deep"
             >
-              {profile.email}
-              <ArrowUpRight
-                className="size-[0.8em] shrink-0 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
-                aria-hidden="true"
-              />
+              <ArrowDownToLine className="size-4" aria-hidden="true" />
+              Download résumé
             </a>
-
-            <div className="mt-12 flex flex-col gap-3 xs:flex-row xs:flex-wrap">
-              <ButtonLink
-                href={profile.cv.href}
-                download={profile.cv.fileName}
-                icon={<Download className="size-4" />}
+            {profile.socials.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-ink/80 bg-paper/50 px-6 text-sm font-semibold text-ink backdrop-blur-md transition-colors hover:bg-ink hover:text-paper"
               >
-                Download Resume
-              </ButtonLink>
-              {profile.socials.map((social) => (
-                <ButtonLink
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="secondary"
-                  icon={<ArrowUpRight className="size-4" />}
-                >
-                  {social.label}
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </ButtonLink>
-              ))}
-            </div>
-
-            <dl className="mt-auto hidden grid-cols-2 gap-6 pt-14 lg:grid">
-              <div>
-                <dt className="label-mono text-subtle">Based in</dt>
-                <dd className="mt-2 text-sm text-fg">{profile.location}</dd>
-              </div>
-              <div>
-                <dt className="label-mono text-subtle">Interested in</dt>
-                <dd className="mt-2 text-sm text-fg">{profile.targetMarkets.join(" · ")}</dd>
-              </div>
-            </dl>
+                {social.label}
+                <ArrowUpRight className="size-4" aria-hidden="true" />
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            ))}
           </div>
 
-          <div className="lg:col-span-6 lg:col-start-7">
+          <dl className="mt-14 grid grid-cols-1 gap-6 border-t border-line pt-6 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="eyebrow text-muted">Based in</dt>
+              <dd className="mt-2 text-ink">{profile.location}</dd>
+            </div>
+            <div>
+              <dt className="eyebrow text-muted">Open to roles in</dt>
+              <dd className="mt-2 text-ink">{profile.targetMarkets.join(" · ")}</dd>
+            </div>
+          </dl>
+          {/* Names the arcs drawn on the globe for people who can't see it. */}
+          <p className="sr-only">
+            The globe beside this text draws arcs from {ORIGIN.name} to{" "}
+            {DESTINATIONS.map((city) => city.name).join(", ")}.
+          </p>
+        </div>
+      </div>
+
+      <div className="container-page">
+        <div className="grid grid-cols-1 gap-12 rounded-[2rem] border border-line bg-paper-raised p-6 shadow-[0_40px_80px_-50px_rgb(20_20_20/0.35)] sm:p-10 lg:grid-cols-12 lg:gap-8 lg:p-14">
+          <div className="lg:col-span-4">
+            <h3 className="font-display text-[clamp(2.5rem,4vw,3.75rem)]">
+              Or send a <span className="italic text-cobalt">message</span>
+            </h3>
+            <p className="mt-5 max-w-[34ch] leading-relaxed text-ink-soft">
+              Tell me about the role, the team or the challenge you have in mind. I&apos;ll reply by email.
+            </p>
+          </div>
+          <div className="lg:col-span-7 lg:col-start-6">
             <ContactForm />
           </div>
         </div>

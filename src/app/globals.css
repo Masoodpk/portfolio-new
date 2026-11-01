@@ -15,6 +15,7 @@
   --color-cobalt: #2340ff;
   --color-cobalt-deep: #1328c4;
   --color-cobalt-soft: #dfe3ff;
+  --color-danger: #b42318;
 
   --font-serif: var(--font-instrument), "Times New Roman", serif;
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;

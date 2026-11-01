@@ -27,12 +27,15 @@ export const STAGES: StageLayout[] = [
   // 2 Experience — a road along the bottom of the screen, under the stops
   { x: 0, y: -1.0, scale: 1.55, tiltX: 0.32, spinSpeed: 0, opacity: 1, face: 0, mobile: { x: 0, y: -1.02, scale: 0.5, opacity: 0.6 } },
   // 3 Skills — five clusters
-  { x: 0.8, y: 0, scale: 0.8, tiltX: 0.2, spinSpeed: 0.1, opacity: 1, mobile: { x: 0, y: 0, scale: 0.55 } },
+  { x: 1.0, y: 0, scale: 0.72, tiltX: 0.2, spinSpeed: 0.1, opacity: 1, mobile: { x: 0, y: 0.55, scale: 0.42, opacity: 0.5 } },
   // 4 Projects — a field under construction
-  { x: 0, y: -0.55, scale: 0.9, tiltX: 0.42, spinSpeed: 0.05, opacity: 1, mobile: { x: 0, y: -0.7, scale: 0.6 } },
+  { x: 0, y: -0.8, scale: 0.9, tiltX: 0.42, spinSpeed: 0.05, opacity: 0.7, mobile: { x: 0, y: -0.9, scale: 0.6, opacity: 0.5 } },
   // 5 Contact — the globe, Kerala to the Gulf
-  { x: 0.78, y: -0.02, scale: 0.82, tiltX: 0.35, spinSpeed: 0, opacity: 1, face: GULF, mobile: { x: 0.1, y: -0.78, scale: 0.6 } },
+  { x: 0.78, y: -0.02, scale: 0.82, tiltX: 0.35, spinSpeed: 0, opacity: 1, face: GULF, mobile: { x: 0.1, y: -0.78, scale: 0.6, opacity: 0.6 } },
 ];
+
+/** Window event (detail: cluster index or null) that spotlights a skills cluster. */
+export const WORLD_FOCUS_EVENT = "world:focus";
 
 export const ORIGIN = { name: "Kozhikode", lat: 11.2588, lon: 75.7804 };
 

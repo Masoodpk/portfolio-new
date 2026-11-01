@@ -7,8 +7,11 @@ for (const path of pages) {
   test(`no WCAG 2.2 AA violations on ${path}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" }); // settle animations before auditing
     await page.goto(path);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
     const results = await new AxeBuilder({ page })
+      // Run in-page: the site has no iframes, and the cross-frame mode opens an
+      // extra browser context that can stall under parallel load.
+      .setLegacyMode(true)
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"])
       .analyze();
     const summary = results.violations.map((v) => ({

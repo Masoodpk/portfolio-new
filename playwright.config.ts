@@ -6,6 +6,10 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 45_000,
   fullyParallel: true,
+  // Real Chrome occasionally stalls creating contexts under heavy parallel load;
+  // a few workers and one retry keep the suite reliable without hiding app bugs.
+  workers: process.env.CI ? 2 : 4,
+  retries: 1,
   reporter: [["list"]],
   use: {
     baseURL: `http://localhost:${PORT}`,

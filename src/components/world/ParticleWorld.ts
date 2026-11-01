@@ -42,12 +42,14 @@ const vertexShader = /* glsl */ `
   uniform float uFocusAmount;
   uniform sampler2D uTouch;
   uniform float uPortraitHalfWidth;
+  uniform float uDark;
 
   varying float vDepth;
   varying float vAlpha;
   varying float vTint;
   varying float vFace;
   varying float vTouch;
+  varying float vShade;
 
   float w(float s, float i) { return max(0.0, 1.0 - abs(s - i)); }
 
@@ -82,7 +84,8 @@ const vertexShader = /* glsl */ `
     p += normalize(away + 1e-5) * uPointerStrength * push * push * 0.22 * (1.0 - face);
 
     // Hero portrait: darker parts of the photo get bigger dots (a halftone).
-    float portraitSize = mix(1.0, 0.35 + aShade * 1.15, face) * (1.0 + touch * 0.5);
+    // On dark paper the dots are drawn a touch larger so the face carries.
+    float portraitSize = mix(1.0, (0.35 + aShade * 1.15) * mix(1.0, 1.22, uDark), face) * (1.0 + touch * 0.5);
 
     // Skills stage: the focused category's cluster grows, the rest recede.
     float focus = w(s, 3.0) * uFocusAmount;
@@ -95,6 +98,7 @@ const vertexShader = /* glsl */ `
     vDepth = smoothstep(2.6, 5.4, -mv.z) * (1.0 - face);
     vFace = face;
     vTouch = touch;
+    vShade = aShade;
     // Colour drifts from cobalt to violet across each shape.
     vTint = smoothstep(-1.1, 1.1, p.x * 0.8 + p.y * 0.6);
     vAlpha = t * mix(1.0, 0.3 + inFocus * 0.7, focus);
@@ -107,12 +111,14 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uFade;
   uniform float uFadeAmount;
   uniform vec3 uInk;
+  uniform float uDark;
   uniform float uOpacity;
   varying float vDepth;
   varying float vAlpha;
   varying float vTint;
   varying float vFace;
   varying float vTouch;
+  varying float vShade;
 
   void main() {
     vec2 c = gl_PointCoord - 0.5;
@@ -120,12 +126,18 @@ const fragmentShader = /* glsl */ `
     if (r > 0.5) discard;
     float edge = smoothstep(0.5, 0.32, r);
     vec3 accent = mix(uColor, uColor2, vTint);
-    // The portrait is drawn in the page's ink (with a hint of cobalt) so the
-    // face reads clearly; particles stirred by the cursor flare into colour.
-    vec3 color = mix(accent, mix(uInk, uColor, 0.18), vFace);
-    color = mix(color, mix(uColor, uColor2, vTint), clamp(vTouch * 1.6, 0.0, 0.9));
+    // Light theme: the portrait is printed in ink with a hint of cobalt.
+    // Dark theme: it's lit in the site's cobalt-to-violet, with the brightest
+    // parts of the photo (forehead, cheeks, nose) running to warm white.
+    vec3 printed = mix(uInk, uColor, 0.18);
+    vec3 lit = mix(accent, uInk, smoothstep(0.35, 1.0, vShade) * 0.75);
+    vec3 color = mix(accent, mix(printed, lit, uDark), vFace);
+    // Particles stirred by the cursor flare: into colour on paper, toward
+    // white on dark (where the face is already in colour).
+    vec3 flare = mix(accent, uInk, uDark * 0.65);
+    color = mix(color, flare, clamp(vTouch * 1.6, 0.0, 0.9));
     color = mix(color, uFade, vDepth * uFadeAmount);
-    float strength = mix(0.85 - vDepth * 0.5, 0.95, vFace);
+    float strength = mix(0.85 - vDepth * 0.5, mix(0.95, 1.0, uDark), vFace);
     gl_FragColor = vec4(color, edge * vAlpha * uOpacity * strength);
   }
 `;
@@ -280,6 +292,7 @@ export class ParticleWorld {
       uTouch: { value: this.trail.texture },
       uPortraitHalfWidth: { value: this.portraitHalfWidth() },
       uInk: { value: new Color(options.theme.ink) },
+      uDark: { value: options.theme.dark ? 1 : 0 },
       uFocusAmount: { value: 0 },
       uColor: { value: new Color(options.theme.color) },
       uColor2: { value: new Color(options.theme.color2) },
@@ -347,6 +360,7 @@ export class ParticleWorld {
     (this.uniforms.uColor.value as Color).set(theme.color);
     (this.uniforms.uColor2.value as Color).set(theme.color2);
     (this.uniforms.uInk.value as Color).set(theme.ink);
+    this.uniforms.uDark.value = theme.dark ? 1 : 0;
     (this.uniforms.uFade.value as Color).set(theme.background);
     (this.arcUniforms.uColor.value as Color).set(theme.arc);
     this.applyFade(theme.dark);

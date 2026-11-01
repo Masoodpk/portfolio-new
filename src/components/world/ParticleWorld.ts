@@ -1,5 +1,4 @@
 import {
-  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -20,6 +19,7 @@ import {
 } from "three";
 import { clusters, globe, journeyRoad, latLonToVec, portrait, portraitPools, seedSphere, typeShape, waveField } from "./shapes";
 import { STAGES, ORIGIN, DESTINATIONS, type StageLayout } from "./stages";
+import { TouchTrail } from "./TouchTrail";
 
 const vertexShader = /* glsl */ `
   attribute vec3 aS1;
@@ -40,10 +40,14 @@ const vertexShader = /* glsl */ `
   uniform float uPointerStrength;
   uniform float uFocus;
   uniform float uFocusAmount;
+  uniform sampler2D uTouch;
+  uniform float uPortraitHalfWidth;
 
   varying float vDepth;
   varying float vAlpha;
   varying float vTint;
+  varying float vFace;
+  varying float vTouch;
 
   float w(float s, float i) { return max(0.0, 1.0 - abs(s - i)); }
 
@@ -63,17 +67,22 @@ const vertexShader = /* glsl */ `
     float t = smoothstep(aRand.w * 0.45, aRand.w * 0.45 + 0.55, uIntro);
     p = mix(scatter, p, t);
 
-    // Gentle repulsion around the pointer.
-    vec3 away = p - uPointer;
-    float d = length(away);
-    // On the portrait it's tighter and uneven, so the cursor stirs the face like dust.
     float face = w(s, 0.0);
-    float push = smoothstep(mix(0.38, 0.3, face), 0.0, d);
-    push *= push * mix(1.0, 0.5 + aRand.y, face);
-    p += normalize(away + 1e-5) * uPointerStrength * push * mix(0.22, 0.16, face);
+
+    // Portrait: the cursor's fading trail (TouchTrail) lifts particles out of
+    // the face, each in its own direction and depth, then lets them settle.
+    vec2 uv = vec2(position.x / (2.0 * uPortraitHalfWidth) + 0.5, position.y * 0.5 + 0.5);
+    float touch = texture2D(uTouch, uv).r * face;
+    float angle = aRand.x * 6.2831;
+    p += vec3(cos(angle) * 0.32 * aRand.z, sin(angle) * 0.32 * aRand.z, 1.1 * (aRand.y - 0.35)) * touch;
+
+    // Other shapes: a gentle push away from the pointer.
+    vec3 away = p - uPointer;
+    float push = smoothstep(0.38, 0.0, length(away));
+    p += normalize(away + 1e-5) * uPointerStrength * push * push * 0.22 * (1.0 - face);
 
     // Hero portrait: darker parts of the photo get bigger dots (a halftone).
-    float portraitSize = mix(1.0, 0.45 + aShade * 1.1, w(s, 0.0));
+    float portraitSize = mix(1.0, 0.35 + aShade * 1.15, face) * (1.0 + touch * 0.5);
 
     // Skills stage: the focused category's cluster grows, the rest recede.
     float focus = w(s, 3.0) * uFocusAmount;
@@ -83,7 +92,9 @@ const vertexShader = /* glsl */ `
     gl_Position = projectionMatrix * mv;
     gl_PointSize = uSize * uPixelRatio * (0.6 + aRand.z * 0.8) * (1.0 + focus * inFocus * 0.7) * portraitSize / -mv.z;
     // Depth fades points toward the background; the flat portrait keeps its ink.
-    vDepth = smoothstep(2.6, 5.4, -mv.z) * (1.0 - 0.8 * w(s, 0.0));
+    vDepth = smoothstep(2.6, 5.4, -mv.z) * (1.0 - face);
+    vFace = face;
+    vTouch = touch;
     // Colour drifts from cobalt to violet across each shape.
     vTint = smoothstep(-1.1, 1.1, p.x * 0.8 + p.y * 0.6);
     vAlpha = t * mix(1.0, 0.3 + inFocus * 0.7, focus);
@@ -95,18 +106,27 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uColor2;
   uniform vec3 uFade;
   uniform float uFadeAmount;
+  uniform vec3 uInk;
   uniform float uOpacity;
   varying float vDepth;
   varying float vAlpha;
   varying float vTint;
+  varying float vFace;
+  varying float vTouch;
 
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float r = length(c);
     if (r > 0.5) discard;
     float edge = smoothstep(0.5, 0.32, r);
-    vec3 color = mix(mix(uColor, uColor2, vTint), uFade, vDepth * uFadeAmount);
-    gl_FragColor = vec4(color, edge * vAlpha * uOpacity * (0.85 - vDepth * 0.5));
+    vec3 accent = mix(uColor, uColor2, vTint);
+    // The portrait is drawn in the page's ink (with a hint of cobalt) so the
+    // face reads clearly; particles stirred by the cursor flare into colour.
+    vec3 color = mix(accent, mix(uInk, uColor, 0.18), vFace);
+    color = mix(color, mix(uColor, uColor2, vTint), clamp(vTouch * 1.6, 0.0, 0.9));
+    color = mix(color, uFade, vDepth * uFadeAmount);
+    float strength = mix(0.85 - vDepth * 0.5, 0.95, vFace);
+    gl_FragColor = vec4(color, edge * vAlpha * uOpacity * strength);
   }
 `;
 
@@ -141,10 +161,47 @@ export type WorldOptions = {
   theme: WorldTheme;
   /** portrait-points.bin; without it the hero shows a planet */
   portrait?: Int16Array;
+  count: number;
+  shapes: WorldShapes;
 };
 
+export type WorldShapes = Record<"hero" | "initials" | "road" | "clusters" | "wave" | "globe", Float32Array> & {
+  shade: Float32Array;
+};
+
+/** Particle count: enough for the portrait to read; other shapes reuse them freely. */
+export const particleCount = (compact: boolean) => (compact ? 9000 : 20000);
+
+const yieldToMain = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+/**
+ * Builds every shape one at a time, yielding between them, so start-up never
+ * blocks the page for long (each shape is a short task, not one big one).
+ */
+export async function buildShapes(
+  options: Pick<WorldOptions, "compact" | "land" | "initials" | "fontFamily" | "portrait" | "theme">,
+): Promise<{ count: number; shapes: WorldShapes }> {
+  const count = particleCount(options.compact);
+  const pools = options.portrait ? portraitPools(options.portrait) : null;
+  // Hero shape: the portrait when its points loaded, otherwise a seed planet.
+  const face = pools ? portrait(count, options.theme.dark ? pools.dark : pools.paper) : null;
+  const hero = face?.positions ?? seedSphere(count);
+  const shade = face?.shade ?? new Float32Array(count).fill(0.5);
+  await yieldToMain();
+  const initials = typeShape(count, options.initials, `800 290px ${options.fontFamily}`);
+  await yieldToMain();
+  const road = journeyRoad(count);
+  const clusterShape = clusters(count);
+  await yieldToMain();
+  const wave = waveField(count);
+  await yieldToMain();
+  const globeShape = globe(count, options.land);
+  await yieldToMain();
+  return { count, shapes: { hero, shade, initials, road, clusters: clusterShape, wave, globe: globeShape } };
+}
+
 /** Colours read from the page's CSS tokens, so the world follows light/dark. */
-export type WorldTheme = { color: string; color2: string; background: string; arc: string; dark: boolean };
+export type WorldTheme = { color: string; color2: string; ink: string; background: string; arc: string; dark: boolean };
 
 type Uniforms = Record<string, IUniform>;
 
@@ -167,6 +224,8 @@ export class ParticleWorld {
   private pointerTarget = 0;
   private stage = 0;
   private stageTarget = 0;
+  private trail = new TouchTrail();
+  private pointerActive = false;
   private focusTarget = 0;
   private layout: StageLayout = { ...STAGES[0] };
   private baseOpacity: number;
@@ -189,20 +248,18 @@ export class ParticleWorld {
     this.camera.position.set(0, 0, 4.4);
     this.scene.add(this.group);
 
-    const count = options.compact ? Math.floor(options.land.length / 2 / 2) : options.land.length / 2;
+    const { count, shapes } = options;
     const geometry = new BufferGeometry();
-    // Hero shape: the portrait when its points loaded, otherwise a seed planet.
     this.portraitData = options.portrait ? portraitPools(options.portrait) : null;
-    const face = this.portraitData ? portrait(count, options.theme.dark ? this.portraitData.dark : this.portraitData.paper) : null;
-    geometry.setAttribute("position", new BufferAttribute(face?.positions ?? seedSphere(count), 3));
-    geometry.setAttribute("aShade", new BufferAttribute(face?.shade ?? new Float32Array(count).fill(0.5), 1));
+    geometry.setAttribute("position", new BufferAttribute(shapes.hero, 3));
+    geometry.setAttribute("aShade", new BufferAttribute(shapes.shade, 1));
     this.geometry = geometry;
     this.count = count;
-    geometry.setAttribute("aS1", new BufferAttribute(typeShape(count, options.initials, `800 290px ${options.fontFamily}`), 3));
-    geometry.setAttribute("aS2", new BufferAttribute(journeyRoad(count), 3));
-    geometry.setAttribute("aS3", new BufferAttribute(clusters(count), 3));
-    geometry.setAttribute("aS4", new BufferAttribute(waveField(count), 3));
-    geometry.setAttribute("aS5", new BufferAttribute(globe(count, options.land), 3));
+    geometry.setAttribute("aS1", new BufferAttribute(shapes.initials, 3));
+    geometry.setAttribute("aS2", new BufferAttribute(shapes.road, 3));
+    geometry.setAttribute("aS3", new BufferAttribute(shapes.clusters, 3));
+    geometry.setAttribute("aS4", new BufferAttribute(shapes.wave, 3));
+    geometry.setAttribute("aS5", new BufferAttribute(shapes.globe, 3));
     const rand = new Float32Array(count * 4);
     for (let i = 0; i < rand.length; i++) rand[i] = Math.random();
     geometry.setAttribute("aRand", new BufferAttribute(rand, 4));
@@ -220,6 +277,9 @@ export class ParticleWorld {
       uPointer: { value: new Vector3(10, 10, 10) },
       uPointerStrength: { value: 0 },
       uFocus: { value: -1 },
+      uTouch: { value: this.trail.texture },
+      uPortraitHalfWidth: { value: this.portraitHalfWidth() },
+      uInk: { value: new Color(options.theme.ink) },
       uFocusAmount: { value: 0 },
       uColor: { value: new Color(options.theme.color) },
       uColor2: { value: new Color(options.theme.color2) },
@@ -235,7 +295,7 @@ export class ParticleWorld {
       depthWrite: false,
       blending: NormalBlending,
     });
-    this.applyBlending(options.theme.dark);
+    this.applyFade(options.theme.dark);
     this.portraitDark = options.theme.dark;
     const points = new Points(geometry, this.material);
     points.frustumCulled = false;
@@ -286,10 +346,20 @@ export class ParticleWorld {
   setTheme(theme: WorldTheme) {
     (this.uniforms.uColor.value as Color).set(theme.color);
     (this.uniforms.uColor2.value as Color).set(theme.color2);
+    (this.uniforms.uInk.value as Color).set(theme.ink);
     (this.uniforms.uFade.value as Color).set(theme.background);
     (this.arcUniforms.uColor.value as Color).set(theme.arc);
-    this.applyBlending(theme.dark);
+    this.applyFade(theme.dark);
     this.applyPortrait(theme.dark);
+  }
+
+  /** Half the portrait's width in shape units (its height is always 2). */
+  private portraitHalfWidth() {
+    const pool = this.portraitData?.paper;
+    if (!pool) return 1;
+    let max = 0;
+    for (let i = 0; i < pool.length; i += 3) max = Math.max(max, Math.abs(pool[i]));
+    return max / 10000 || 1;
   }
 
   /** Light themes draw the photo's shadows; dark themes draw its light. */
@@ -305,10 +375,7 @@ export class ParticleWorld {
     shade.needsUpdate = true;
   }
 
-  /** On dark paper the points add light (a soft glow); on light paper they're ink. */
-  private applyBlending(dark: boolean) {
-    this.material.blending = dark ? AdditiveBlending : NormalBlending;
-    this.material.needsUpdate = true;
+  private applyFade(dark: boolean) {
     this.uniforms.uFadeAmount.value = dark ? 0.55 : 0.75;
   }
 
@@ -327,8 +394,11 @@ export class ParticleWorld {
   setPointer(x: number | null, y = 0) {
     if (x === null) {
       this.pointerTarget = 0;
+      this.pointerActive = false;
+      this.trail.lift();
       return;
     }
+    this.pointerActive = true;
     this.pointerNdc.set(x, y);
     this.pointerTarget = 1;
   }
@@ -356,6 +426,7 @@ export class ParticleWorld {
 
   dispose() {
     this.pause();
+    this.trail.dispose();
     this.group.traverse((object) => {
       const item = object as Points;
       item.geometry?.dispose();
@@ -415,7 +486,12 @@ export class ParticleWorld {
     this.raycaster.setFromCamera(this.pointerNdc, this.camera);
     const hit = new Vector3();
     if (this.raycaster.ray.intersectPlane(this.plane, hit)) {
-      (u.uPointer.value as Vector3).copy(hit.applyMatrix4(new Matrix4().copy(g.matrixWorld).invert()));
+      const local = hit.applyMatrix4(new Matrix4().copy(g.matrixWorld).invert());
+      (u.uPointer.value as Vector3).copy(local);
+      // Paint the trail in portrait UV space while the face is on screen.
+      if (this.pointerActive && this.stage < 0.6) {
+        this.trail.add(local.x / (2 * u.uPortraitHalfWidth.value) + 0.5, local.y * 0.5 + 0.5);
+      }
     }
 
     const arc = this.arcUniforms;
@@ -424,6 +500,7 @@ export class ParticleWorld {
     arc.uDraw.value += ((globeWeight > 0.6 ? 1 : 0) - arc.uDraw.value) * (1 - Math.exp(-dt * 1.6));
     this.arcs.visible = globeWeight > 0.01;
 
+    this.trail.update(dt);
     this.renderer.render(this.scene, this.camera);
   };
 }

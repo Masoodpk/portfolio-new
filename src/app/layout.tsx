@@ -81,7 +81,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: bootScript }} />
       </head>
-      <body className="flex min-h-dvh flex-col text-ink">
+      {/* Browser extensions (e.g. ColorZilla) add attributes to <body> before hydration. */}
+      <body className="flex min-h-dvh flex-col text-ink" suppressHydrationWarning>
         <Loader />
         <SkipLink />
         <SmoothScroll />

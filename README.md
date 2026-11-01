@@ -8,7 +8,7 @@ experience, stack, projects, CV, contact) is readable in the first screen and wo
 
 ## Highlights
 
-- **One particle world, six shapes:** about 11,000 points morph per section: Masood's portrait (hero; the cursor stirs it like dust) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
+- **One particle world, six shapes:** 20,000 points (9,000 on phones) morph per section: Masood's portrait (hero; drawn in ink, and the cursor leaves a trail that lifts the particles and flares them into colour) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
 - **Scroll storytelling in CSS:** masked line reveals, a lead paragraph that inks in word by word, parallax and a pinned sideways "road trip" through the career stops, all with CSS scroll-driven animations.
 - **Light and dark themes:** follows the system setting on a first visit, remembers the visitor's choice, and switches with a circular reveal from the toggle. The particle world glows in dark mode.
 - **First-visit loader:** the site icon's arc draws from Kozhikode to a ring while a counter runs to 100, then the sheet lifts away. Once per visit, CSS only, never for reduced motion, and the hero is painted underneath so it doesn't slow the page.

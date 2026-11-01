@@ -40,7 +40,7 @@ export function WorldCanvas() {
     const start = async () => {
       try {
         const compact = window.matchMedia(COMPACT_QUERY).matches;
-        const [{ ParticleWorld }, land, face] = await Promise.all([
+        const [{ ParticleWorld, buildShapes }, land, face] = await Promise.all([
           import("./ParticleWorld"),
           fetch("/data/land-points.bin").then((r) => {
             if (!r.ok) throw new Error(`land points ${r.status}`);
@@ -55,14 +55,17 @@ export function WorldCanvas() {
         if (disposed) return;
         // Heavy sans survives as particles; the serif's hairlines don't.
         const sans = getComputedStyle(root).getPropertyValue("--font-manrope").trim() || "sans-serif";
-        world = new ParticleWorld(canvas, {
+        const input = {
           compact,
           land: new Int16Array(land),
           portrait: face ? new Int16Array(face) : undefined,
           initials: profile.initials,
           fontFamily: sans,
           theme: readTheme(),
-        });
+        };
+        const built = await buildShapes(input);
+        if (disposed) return;
+        world = new ParticleWorld(canvas, { ...input, ...built });
         root.dataset.world = "3d";
         cleanups.push(...wire(world, canvas));
         world.play();
@@ -102,6 +105,7 @@ function readTheme(): WorldTheme {
   return {
     color: token("--cobalt"),
     color2: token("--violet"),
+    ink: token("--ink"),
     background: token("--paper"),
     arc: token("--cobalt-deep"),
     dark: document.documentElement.dataset.theme === "dark",

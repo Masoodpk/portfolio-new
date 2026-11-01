@@ -16,7 +16,7 @@ import sharp from "sharp";
 const SOURCE = "src/assets/masood-pk.png";
 const WIDTH = 220; // sampling grid; points are jittered within each cell
 const CROP_BOTTOM = 0.74; // the photo's bottom edge fades into a dark band
-const COUNT = 12000; // the desktop world uses ~11,100 particles
+const COUNT = 20000; // the desktop world uses 20,000 particles
 
 const meta = await sharp(SOURCE).metadata();
 const height = Math.round(WIDTH * (meta.height / meta.width) * CROP_BOTTOM);

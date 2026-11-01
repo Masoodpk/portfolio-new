@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { profile } from "@/content/profile";
 import { timeline, type TimelineEntry, type TimelineKind } from "@/content/experience";
 
 const kindLabel: Record<TimelineKind, string> = {
@@ -120,8 +119,7 @@ export function Experience() {
             <p className="eyebrow text-cobalt">Next</p>
             <p className="font-display mt-5 text-[clamp(3.25rem,5.5vw,5.5rem)] italic">The road continues.</p>
             <p className="mt-6 max-w-[38ch] leading-relaxed text-ink-soft">
-              {profile.availability} — especially the {profile.targetMarkets.slice(0, -1).join(", ")} and{" "}
-              {profile.targetMarkets.at(-1)}.
+              Still learning, still shipping — the next stop starts with a conversation.
             </p>
           </div>
         </div>

@@ -58,15 +58,9 @@ export function Contact() {
             ))}
           </div>
 
-          <dl className="mt-14 grid grid-cols-1 gap-6 border-t border-line pt-6 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="eyebrow text-muted">Based in</dt>
-              <dd className="mt-2 text-ink">{profile.location}</dd>
-            </div>
-            <div>
-              <dt className="eyebrow text-muted">Open to roles in</dt>
-              <dd className="mt-2 text-ink">{profile.targetMarkets.join(" · ")}</dd>
-            </div>
+          <dl className="mt-14 border-t border-line pt-6 text-sm">
+            <dt className="eyebrow text-muted">Based in</dt>
+            <dd className="mt-2 text-ink">{profile.location}</dd>
           </dl>
           {/* Names the arcs drawn on the globe for people who can't see it. */}
           <p className="sr-only">

@@ -260,17 +260,6 @@
         transform: translateY(calc(var(--parallax, 8vh) * -1));
       }
     }
-    @keyframes drift-out {
-      to {
-        transform: translateX(var(--drift, 8vw));
-      }
-    }
-    /* Hero name lines slide apart as the hero leaves the viewport */
-    .hero-drift {
-      animation: drift-out linear both;
-      animation-timeline: view();
-      animation-range: exit -10% exit 100%;
-    }
     .parallax-x {
       animation: drift-x linear both;
       animation-timeline: view();

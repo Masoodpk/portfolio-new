@@ -17,7 +17,7 @@ export const absoluteUrl = (path = "/") => new URL(path, `${siteUrl}/`).toString
 export const seo = {
   siteName: `${profile.name} — Portfolio`,
   title: `${profile.name} — ${profile.title} | Vue.js, Nuxt.js, React & Next.js`,
-  description: `${profile.title} with ${profile.experienceSummary} of experience building production web applications in Vue.js, Nuxt.js, React and Next.js. Open to frontend roles in the UAE, Saudi Arabia, Qatar and beyond.`,
+  description: `${profile.title} with ${profile.experienceSummary} of experience building production web applications in Vue.js, Nuxt.js, React and Next.js.`,
   keywords: [
     "Masood PK",
     "Software Developer",

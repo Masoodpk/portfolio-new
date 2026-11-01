@@ -25,7 +25,7 @@ export function SectionHeading({ index, label, id, children, aside }: SectionHea
       </div>
       <h2
         id={id}
-        className="font-display-regular mt-8 max-w-[20ch] text-[clamp(2.25rem,6vw,5rem)] text-fg"
+        className="reveal font-display-regular mt-8 max-w-[20ch] text-[clamp(2.25rem,6vw,5rem)] text-fg"
       >
         {children}
       </h2>

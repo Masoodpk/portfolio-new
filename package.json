@@ -9,23 +9,23 @@
     "lint": "eslint",
     "poster": "node scripts/capture-hand-poster.mjs",
     "test:e2e": "playwright test",
-    "model": "npx -y @gltf-transform/cli@4 optimize assets-src/models/hand_snap_v2.glb public/models/hand.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify false --instance false --join false --flatten false"
+    "model": "npx -y @gltf-transform/cli@4 optimize assets-src/models/hand_snap_v2.glb public/models/hand.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify false --instance false --join false --flatten false",
+    "shots": "node scripts/capture-project-shots.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
-    "gsap": "^3.15.0",
     "lucide-react": "^1.66.0",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "three": "^0.187.0",
-    "zod": "^4.6.7"
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.187.0",
@@ -33,6 +33,7 @@
     "eslint-config-next": "16.4.3",
     "sharp": "^0.35.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   }
 }

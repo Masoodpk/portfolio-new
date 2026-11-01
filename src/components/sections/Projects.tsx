@@ -1,7 +1,8 @@
-import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TagList } from "@/components/ui/Tag";
-import { BrowserFrame } from "@/components/ui/BrowserFrame";
+import { ProjectVisual } from "@/components/projects/ProjectVisual";
 import { projects } from "@/content/projects";
 
 export function Projects() {
@@ -25,14 +26,18 @@ export function Projects() {
                 className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-8"
               >
                 <div className={`lg:col-span-7 ${i % 2 === 1 ? "lg:order-last lg:col-start-6" : ""}`}>
-                  <BrowserFrame url={project.links[0]?.label ?? project.slug}>
-                    <div className="flex aspect-[16/10] flex-col justify-between bg-[radial-gradient(80%_80%_at_70%_20%,rgb(255_95_31/0.14),transparent_60%)] p-6 md:p-10">
-                      <p className="label-mono text-subtle">{project.context}</p>
-                      <p className="font-display-wide text-[clamp(2.5rem,7vw,6rem)] uppercase text-fg/90">
-                        {project.name}
-                      </p>
-                    </div>
-                  </BrowserFrame>
+                  <Link
+                    href={`/projects/${project.slug}`}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    className="block transition-transform duration-700 ease-out-expo hover:-translate-y-1"
+                  >
+                    <ProjectVisual
+                      project={project}
+                      visual={project.visuals[0]}
+                      sizes="(min-width: 1024px) 55vw, 100vw"
+                    />
+                  </Link>
                 </div>
 
                 <div className={`flex flex-col lg:col-span-5 ${i % 2 === 1 ? "" : "lg:pl-8"}`}>
@@ -63,7 +68,18 @@ export function Projects() {
                     <TagList items={project.stack} label={`${project.name} technology stack`} />
                   </div>
 
-                  <div className="mt-8 flex flex-wrap gap-6">
+                  <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+                    <Link
+                      href={`/projects/${project.slug}`}
+                      className="group/cta inline-flex min-h-12 items-center gap-3 bg-fg px-6 text-sm font-medium text-ink transition-colors hover:bg-accent"
+                    >
+                      Read case study
+                      <span className="sr-only">: {project.name}</span>
+                      <ArrowRight
+                        className="size-4 transition-transform group-hover/cta:translate-x-0.5"
+                        aria-hidden="true"
+                      />
+                    </Link>
                     {project.links.map((link) => (
                       <a
                         key={link.href}

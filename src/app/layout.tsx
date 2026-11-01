@@ -3,6 +3,7 @@ import { Archivo, Geist, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SkipLink } from "@/components/layout/SkipLink";
+import { CustomCursor } from "@/components/layout/CustomCursor";
 import { profile } from "@/content/profile";
 import "./globals.css";
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <SiteFooter />
+        <CustomCursor />
       </body>
     </html>
   );

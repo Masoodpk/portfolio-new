@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Download, Menu, X } from "lucide-react";
 import { navItems } from "@/content/navigation";
 import { profile } from "@/content/profile";
@@ -9,7 +10,11 @@ import { useActiveSection } from "@/lib/use-active-section";
 const sectionIds = navItems.map((item) => item.id);
 
 export function SiteHeader() {
-  const active = useActiveSection(sectionIds);
+  // Section links are in-page anchors on the home page and "/#id" everywhere else.
+  const onHome = usePathname() === "/";
+  const sectionHref = (id: string) => (onHome ? `#${id}` : `/#${id}`);
+  const activeSection = useActiveSection(sectionIds);
+  const active = onHome ? activeSection : null;
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,7 +70,7 @@ export function SiteHeader() {
     >
       <div className="container-page flex h-[var(--header-h)] items-center justify-between gap-6">
         <a
-          href="#home"
+          href={sectionHref("home")}
           className="group flex items-center gap-3"
           aria-label={`${profile.name} — back to top`}
           onClick={() => setOpen(false)}
@@ -84,7 +89,7 @@ export function SiteHeader() {
               return (
                 <li key={item.id}>
                   <a
-                    href={`#${item.id}`}
+                    href={sectionHref(item.id)}
                     aria-current={isActive ? "true" : undefined}
                     className={`relative block px-3 py-2 text-sm transition-colors ${
                       isActive ? "text-fg" : "text-subtle hover:text-fg"
@@ -138,7 +143,7 @@ export function SiteHeader() {
             {navItems.map((item, i) => (
               <li key={item.id} className="border-b border-line">
                 <a
-                  href={`#${item.id}`}
+                  href={sectionHref(item.id)}
                   onClick={() => setOpen(false)}
                   aria-current={active === item.id ? "true" : undefined}
                   className="flex items-baseline gap-4 py-4"

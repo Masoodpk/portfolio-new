@@ -1,9 +1,10 @@
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SkillsGraph } from "@/components/sections/SkillsGraph";
 import { skillCategories, skills } from "@/content/skills";
 
 /**
- * Server-rendered skills index. Stage 5 layers the interactive
- * ecosystem view on top of this crawlable list.
+ * Interactive technology map on tablet and up; a plain, fully readable list
+ * on phones. Both are rendered on the server so every skill is crawlable.
  */
 export function Skills() {
   return (
@@ -24,7 +25,11 @@ export function Skills() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 border-t border-line sm:grid-cols-2 lg:grid-cols-5">
+        <div className="hidden md:block">
+          <SkillsGraph />
+        </div>
+
+        <div className="grid grid-cols-1 border-t border-line sm:grid-cols-2 md:hidden">
           {skillCategories.map((category, i) => (
             <div
               key={category.id}

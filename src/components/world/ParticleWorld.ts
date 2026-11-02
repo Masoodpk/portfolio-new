@@ -2,10 +2,13 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  CustomBlending,
   Group,
   Line,
   Matrix4,
   NormalBlending,
+  OneFactor,
+  OneMinusSrcAlphaFactor,
   PerspectiveCamera,
   Plane,
   Points,
@@ -84,11 +87,9 @@ const vertexShader = /* glsl */ `
     float push = smoothstep(0.38, 0.0, length(away));
     p += normalize(away + 1e-5) * uPointerStrength * push * push * 0.22 * (1.0 - face);
 
-    // Portrait: one dot per photo pixel (as in Codrops' demo), sized by its
-    // tone with a random spread, so the face reads through the gaps between
-    // dots. Shade 0 marks spare particles, which stay hidden on the face.
-    float dot = step(0.01, aShade) * (0.12 + aShade * 1.15) * (0.6 + aRand.w * 0.8);
-    float portraitSize = mix(1.0, dot * uPortraitDot, face) * (1.0 + touch * 0.5);
+    // Portrait: a point cloud of fine, nearly equal points; where they crowd
+    // (brows, nose, lips) their light adds up, as in a face scan.
+    float portraitSize = mix(1.0, (0.7 + aShade * 0.3) * uPortraitDot, face) * (1.0 + touch * 0.8);
 
     // Skills stage: the focused category's cluster grows, the rest recede.
     float focus = w(s, 3.0) * uFocusAmount;
@@ -128,15 +129,14 @@ const fragmentShader = /* glsl */ `
     vec2 c = gl_PointCoord - 0.5;
     float r = length(c);
     if (r > 0.5) discard;
-    // Portrait dots have a soft rim, like Codrops' particles.
-    float edge = smoothstep(0.5, mix(0.32, 0.18, vFace), r);
+    float edge = smoothstep(0.5, mix(0.32, 0.12, vFace), r);
     vec3 accent = mix(uColor, uColor2, vTint);
     // Light theme: the portrait is printed in ink with a hint of cobalt.
     // Dark theme: it's lit in the site's cobalt-to-violet, with the brightest
     // parts of the photo (forehead, cheeks, nose) running to warm white.
     vec3 printed = mix(uInk, uColor, 0.18);
     // Dark theme: white particles whose brightness is the photo's brightness.
-    vec3 lit = uInk * mix(0.2, 1.1, vShade);
+    vec3 lit = uInk;
     vec3 color = mix(accent, mix(printed, lit, uDark), vFace);
     // Particles stirred by the cursor flare: into colour on paper, toward
     // white on dark (where the face is already in colour).
@@ -144,8 +144,12 @@ const fragmentShader = /* glsl */ `
     color = mix(color, flare, clamp(vTouch * 1.6, 0.0, 0.9));
     color = mix(color, uFade, vDepth * uFadeAmount);
     // Light theme: paler tones are printed lighter, like a photo in ink.
-    float strength = mix(0.85 - vDepth * 0.5, mix(0.45 + vShade * 0.55, 1.0, uDark), vFace);
-    gl_FragColor = vec4(color, edge * vAlpha * uOpacity * strength);
+    float strength = mix(0.85 - vDepth * 0.5, mix(0.3 + vShade * 0.5, 0.25 + 0.75 * vShade, uDark), vFace);
+    float alpha = edge * vAlpha * uOpacity * strength;
+    // Premultiplied output: on dark, the portrait's points add their light
+    // (alpha 0), so crowded points glow; everything else blends normally.
+    float additive = vFace * uDark;
+    gl_FragColor = vec4(color * alpha, alpha * (1.0 - additive));
   }
 `;
 
@@ -189,7 +193,7 @@ export type WorldShapes = Record<"hero" | "initials" | "road" | "clusters" | "wa
 };
 
 /** Particle count: enough for the portrait to read; other shapes reuse them freely. */
-export const particleCount = (compact: boolean) => (compact ? 9000 : 20000);
+export const particleCount = (compact: boolean) => (compact ? 14000 : 32000);
 
 const yieldToMain = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -232,7 +236,7 @@ export class ParticleWorld {
   private uniforms: Uniforms;
   private geometry: BufferGeometry;
   private count: number;
-  private portraitData: { paper: Int16Array; dark: Int16Array } | null;
+  private portraitData: ReturnType<typeof portraitPools> | null;
   private portraitDark: boolean | null = null;
   private material: ShaderMaterial;
   private arcUniforms: Uniforms;
@@ -249,6 +253,7 @@ export class ParticleWorld {
   private layout: StageLayout = { ...STAGES[0] };
   private baseOpacity: number;
   private spin = 0;
+  private look = { x: 0, y: 0 };
   private start = performance.now();
   private last = performance.now();
   private running = false;
@@ -297,11 +302,11 @@ export class ParticleWorld {
       uPointerStrength: { value: 0 },
       uFocus: { value: -1 },
       uTouch: { value: this.trail.texture },
-      uPortraitHalfWidth: { value: this.portraitHalfWidth() },
+      uPortraitHalfWidth: { value: this.portraitData?.halfWidth ?? 1 },
       uInk: { value: new Color(options.theme.ink) },
       uDark: { value: options.theme.dark ? 1 : 0 },
-      // Phones draw the portrait smaller, so its dots shrink to keep the gaps.
-      uPortraitDot: { value: options.compact ? 1.1 : 1.2 },
+      // Point size on the portrait, relative to other shapes' dots.
+      uPortraitDot: { value: options.compact ? 0.85 : 0.75 },
       uFocusAmount: { value: 0 },
       uColor: { value: new Color(options.theme.color) },
       uColor2: { value: new Color(options.theme.color2) },
@@ -315,7 +320,9 @@ export class ParticleWorld {
       uniforms: this.uniforms,
       transparent: true,
       depthWrite: false,
-      blending: NormalBlending,
+      blending: CustomBlending,
+      blendSrc: OneFactor,
+      blendDst: OneMinusSrcAlphaFactor,
     });
     this.applyFade(options.theme.dark);
     this.portraitDark = options.theme.dark;
@@ -374,15 +381,6 @@ export class ParticleWorld {
     (this.arcUniforms.uColor.value as Color).set(theme.arc);
     this.applyFade(theme.dark);
     this.applyPortrait(theme.dark);
-  }
-
-  /** Half the portrait's width in shape units (its height is always 2). */
-  private portraitHalfWidth() {
-    const pool = this.portraitData?.paper;
-    if (!pool) return 1;
-    let max = 0;
-    for (let i = 0; i < pool.length; i += 3) max = Math.max(max, Math.abs(pool[i]));
-    return max / 10000 || 1;
   }
 
   /** Light themes draw the photo's shadows; dark themes draw its light. */
@@ -498,11 +496,19 @@ export class ParticleWorld {
     this.spin += shortestAngle(this.spin, face) * (1 - Math.exp(-dt * 5 * faceWeight));
     this.spin %= Math.PI * 2;
 
+    // Hero: the portrait turns a little toward the pointer (and sways on its
+    // own), so its relief catches the light.
+    const hero = Math.max(0, 1 - this.stage);
+    const look = this.pointerActive ? this.pointerNdc : { x: 0, y: 0 };
+    const turn = 1 - Math.exp(-dt * 3);
+    this.look.x += (look.x * 0.3 + Math.sin(time * 0.35) * 0.09 - this.look.x) * turn;
+    this.look.y += (-look.y * 0.18 + Math.sin(time * 0.27) * 0.04 - this.look.y) * turn;
+
     const g = this.group;
     g.position.set(this.layout.x, this.layout.y, 0);
     g.scale.setScalar(this.layout.scale);
-    g.rotation.y = this.spin;
-    g.rotation.x = this.layout.tiltX;
+    g.rotation.y = this.spin + this.look.x * hero;
+    g.rotation.x = this.layout.tiltX + this.look.y * hero;
     g.updateMatrixWorld();
 
     // Pointer → local space of the group.

@@ -1,14 +1,16 @@
 /**
- * Turns the portrait into particle positions for the hero (the technique from
- * Codrops' "Interactive Particles with Three.js"): every point is a pixel of
- * the photo that clears a tone threshold, with gaps where it is dark. Writes
- * public/data/portrait-points.bin:  npm run portrait
+ * Turns the portrait into a 3D point cloud for the hero, like a face scan:
+ * thousands of fine points on a relief built from the photo, packed densely
+ * where the photo is bright (dark themes) or dark (light themes), so overlaps
+ * glow along brows, nose and lips. A little dust floats around the head.
+ * Writes public/data/portrait-points.bin:  npm run portrait
  *
  * File layout (Int16, little-endian):
- *   [count, then count × (x, y, shade) for paper themes,
- *           then count × (x, y, shade) for dark themes]
- * y is in -1…1 and x keeps the photo's aspect (×10000); shade is 0…1 (×10000). Light themes draw dark ink
- * where the photo is dark; dark themes draw light where the photo is light.
+ *   [count, aspect (width / height), then count × (x, y, z, shade) for paper themes,
+ *           then count × (x, y, z, shade) for dark themes]
+ * y is in -1…1 and x keeps the photo's aspect; x, y, z and shade (0…1) are ×10000.
+ * The relief is an estimate (a dome from the silhouette plus the photo's own
+ * shading), not a scan; it only needs to catch the light as the head turns.
  */
 import { writeFile } from "node:fs/promises";
 import sharp from "sharp";
@@ -16,7 +18,7 @@ import sharp from "sharp";
 const SOURCE = "src/assets/masood-pk.png";
 const WIDTH = 340; // pixel grid: one particle per qualifying pixel, with room between them
 const CROP_BOTTOM = 0.7; // head, neck and shoulders; the T-shirt below adds nothing
-const COUNT = 20000; // the desktop world uses 20,000 particles
+const COUNT = 32000; // the desktop world uses 32,000 particles
 
 const meta = await sharp(SOURCE).metadata();
 const height = Math.round(WIDTH * (meta.height / meta.width) * CROP_BOTTOM);
@@ -103,69 +105,103 @@ const tone = (i) => Math.min(1, Math.max(0, stretched[i] + 1.4 * (stretched[i] -
 let seed = 7;
 const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
 
+// Depth. Distance from the silhouette (two-pass chamfer) makes a dome, and the
+// photo's shading adds relief: brow, nose and cheekbones catch the light and
+// sit forward, eye sockets and the mouth line fall back.
+const dist = new Float32Array(WIDTH * height);
+for (let i = 0; i < dist.length; i++) dist[i] = person(i) ? 1e6 : 0;
+for (let y = 0; y < height; y++)
+  for (let x = 0; x < WIDTH; x++) {
+    const i = at(x, y);
+    if (!dist[i]) continue;
+    if (x > 0) dist[i] = Math.min(dist[i], dist[i - 1] + 1);
+    if (y > 0) dist[i] = Math.min(dist[i], dist[i - WIDTH] + 1);
+    if (x > 0 && y > 0) dist[i] = Math.min(dist[i], dist[i - WIDTH - 1] + 1.414);
+    if (x < WIDTH - 1 && y > 0) dist[i] = Math.min(dist[i], dist[i - WIDTH + 1] + 1.414);
+  }
+for (let y = height - 1; y >= 0; y--)
+  for (let x = WIDTH - 1; x >= 0; x--) {
+    const i = at(x, y);
+    if (!dist[i]) continue;
+    if (x < WIDTH - 1) dist[i] = Math.min(dist[i], dist[i + 1] + 1);
+    if (y < height - 1) dist[i] = Math.min(dist[i], dist[i + WIDTH] + 1);
+    if (x < WIDTH - 1 && y < height - 1) dist[i] = Math.min(dist[i], dist[i + WIDTH + 1] + 1.414);
+    if (x > 0 && y < height - 1) dist[i] = Math.min(dist[i], dist[i + WIDTH - 1] + 1.414);
+  }
+const headRadius = WIDTH * 0.16; // about half the face's width
+const broad = boxBlur((i) => stretched[i], 10);
+const depth = (i) => {
+  const dome = Math.sqrt(Math.min(1, dist[i] / headRadius));
+  return 0.4 * dome + 0.12 * (soft[i] - broad[i]) - 0.25;
+};
+
+const scale = 2 / height; // fit the height to -1…1
+const DUST = 0.1; // share of points drifting around the head
+
 /**
- * One particle per pixel whose shade clears the threshold (as Codrops does with
- * brightness > 34), so the face reads like a coarse photo rather than noise.
- * Below the threshold a few faint dots remain, so even the palest skin (on
- * paper) and the darkest hair (on dark) keep the head's shape.
- * The pool is shuffled, so taking the first N points (phones) thins it evenly.
- * Particles beyond the pixel count get shade 0: the shader hides them on the
- * face, and they only appear when the world morphs into other shapes.
+ * Draws COUNT points: most from the person, each pixel picked in proportion to
+ * its weight and placed anywhere inside it (so density, not dot size, carries
+ * the image), plus faint dust in a loose shell around the head. Shuffled, so
+ * phones taking the first N points get an even thinning of both.
  */
-function sample(shadeOf, rimShade) {
-  const scale = 2 / height; // fit the height to -1…1
-  const cells = [];
+function sample(weightOf, shadeOf) {
+  const weights = new Float32Array(WIDTH * height);
+  let total = 0;
   for (let y = 0; y < height; y++) {
     // Fade out towards the bottom crop so the shoulders dissolve.
-    const fade = Math.min(1, (height - y) / (height * 0.25));
+    const fade = Math.min(1, (height - y) / (height * 0.3)) ** 1.5;
     for (let x = 0; x < WIDTH; x++) {
       const i = at(x, y);
-      if (!person(i) || rand() > fade) continue;
-      let shade = shadeOf(tone(i));
-      if (rim(i)) shade = Math.max(shade, rimShade);
-      if (shade < 0.14) {
-        if (rand() > 0.2) continue;
-        shade = 0.08;
-      }
-      cells.push([x, y, shade]);
+      if (!person(i)) continue;
+      weights[i] = weightOf(tone(i), rim(i)) * fade;
+      total += weights[i];
     }
   }
-  for (let i = cells.length - 1; i > 0; i--) {
+  const cdf = new Float64Array(weights.length);
+  let run = 0;
+  for (let i = 0; i < weights.length; i++) cdf[i] = run += weights[i] / total;
+
+  const out = new Int16Array(COUNT * 4);
+  const dust = Math.round(COUNT * DUST);
+  const order = Array.from({ length: COUNT }, (_, i) => i);
+  for (let i = COUNT - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
-    [cells[i], cells[j]] = [cells[j], cells[i]];
+    [order[i], order[j]] = [order[j], order[i]];
   }
-  const out = new Int16Array(COUNT * 3);
-  for (let i = 0; i < COUNT; i++) {
-    const [x, y, shade] = cells[i % cells.length];
-    const px = (x + 0.5 + (rand() - 0.5) * 0.6 - WIDTH / 2) * scale;
-    const py = -(y + 0.5 + (rand() - 0.5) * 0.6 - height / 2) * scale;
-    out.set([Math.round(px * 10000), Math.round(py * 10000), Math.round((i < cells.length ? shade : 0) * 10000)], i * 3);
+  for (let n = 0; n < COUNT; n++) {
+    let x, y, z, shade;
+    if (n < dust) {
+      // Dust: a loose shell around the head, faint and fine.
+      const a = rand() * Math.PI * 2, r = 0.75 + rand() ** 0.6 * 0.9;
+      x = Math.cos(a) * r * 1.1;
+      y = Math.sin(a) * r * 0.95 + 0.15;
+      z = (rand() - 0.5) * 1.2;
+      shade = 0.05 + rand() * 0.25;
+    } else {
+      const target = rand();
+      let lo = 0, hi = cdf.length - 1;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (cdf[mid] < target) lo = mid + 1;
+        else hi = mid;
+      }
+      const px = lo % WIDTH, py = (lo / WIDTH) | 0;
+      x = (px + rand() - WIDTH / 2) * scale;
+      y = -(py + rand() - height / 2) * scale;
+      z = depth(lo) + (rand() - 0.5) * 0.015;
+      shade = shadeOf(tone(lo));
+    }
+    out.set([x, y, z, shade].map((v) => Math.round(v * 10000)), order[n] * 4);
   }
-  console.log(`${cells.length} pixels qualify`);
   return out;
 }
 
-const forPaper = sample((t) => (1 - t) ** 0.8, 0.55); // ink where the photo is dark
-const forDark = sample((t) => t ** 1.2, 0.4); // light where the photo is bright
-const header = new Int16Array([COUNT]);
+// Dark themes: points gather where the photo is lit; light themes: where it's
+// dark, like ink. Every part of the head keeps some points, and its outline a
+// few more, so the shape holds even where the photo is flat.
+const forPaper = sample((t, edge) => 0.08 + (1 - t) ** 1.6 + (edge ? 0.5 : 0), (t) => 0.35 + 0.65 * (1 - t));
+const forDark = sample((t, edge) => 0.07 + t ** 1.8 + (edge ? 0.4 : 0), (t) => 0.35 + 0.65 * t);
+const header = new Int16Array([COUNT, Math.round((WIDTH / height) * 10000)]);
 const file = Buffer.concat([header, forPaper, forDark].map((a) => Buffer.from(a.buffer)));
 await writeFile("public/data/portrait-points.bin", file);
 console.log(`portrait-points.bin: ${COUNT} points × 2 themes, ${Math.round(file.length / 1024)} KB, aspect ${(WIDTH / height).toFixed(3)}`);
-
-// Optional preview for tuning: node scripts/build-portrait-points.mjs --preview out.png
-const previewIndex = process.argv.indexOf("--preview");
-if (previewIndex > 0) {
-  const W = 520, H = 520, img = Buffer.alloc(W * H * 3, 255);
-  for (const [pool, ox] of [[forPaper, 0], [forDark, W / 2]]) {
-    if (ox) for (let p = 0; p < W * H; p++) if (p % W >= W / 2) img.fill(16, p * 3, p * 3 + 3);
-    for (let k = 0; k < 11000; k++) {
-      const x = Math.round(ox + W / 4 + (pool[k * 3] / 10000) * (H / 4.6));
-      const y = Math.round(H / 2 - (pool[k * 3 + 1] / 10000) * (H / 4.6));
-      if (x < 0 || y < 0 || x >= W || y >= H) continue;
-      const c = ox ? [180, 190, 255] : [35, 64, 255];
-      img.set(c, (y * W + x) * 3);
-      if (x + 1 < W) img.set(c, (y * W + x + 1) * 3);
-    }
-  }
-  await sharp(img, { raw: { width: W, height: H, channels: 3 } }).png().toFile(process.argv[previewIndex + 1]);
-}

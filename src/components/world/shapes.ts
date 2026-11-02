@@ -44,28 +44,32 @@ export function seedSphere(count: number): Shape {
 
 /**
  * 0 — Hero: the portrait as particles (see scripts/build-portrait-points.mjs).
- * `data` holds one theme's pool of (x, y, shade) triples; returns positions
- * plus a per-point shade (0…1) that the shader turns into dot size.
+ * `data` holds one theme's pool of (x, y, z, shade) points; returns positions
+ * plus a per-point shade (0…1) that the shader turns into brightness.
  */
 export function portrait(count: number, data: Int16Array): { positions: Shape; shade: Float32Array } {
   const positions = new Float32Array(count * 3);
   const shade = new Float32Array(count);
-  const available = data.length / 3;
-  const rand = random(5);
+  const available = data.length / 4;
   for (let i = 0; i < count; i++) {
     const k = i % available; // pools are pre-shuffled, so the first N are a fair sample
-    positions[i * 3] = data[k * 3] / 10000;
-    positions[i * 3 + 1] = data[k * 3 + 1] / 10000;
-    positions[i * 3 + 2] = (rand() - 0.5) * 0.18; // a little depth, so the face shimmers as it turns
-    shade[i] = data[k * 3 + 2] / 10000;
+    positions[i * 3] = data[k * 4] / 10000;
+    positions[i * 3 + 1] = data[k * 4 + 1] / 10000;
+    positions[i * 3 + 2] = data[k * 4 + 2] / 10000;
+    shade[i] = data[k * 4 + 3] / 10000;
   }
   return { positions, shade };
 }
 
 /** Splits portrait-points.bin into its light-theme and dark-theme pools. */
 export function portraitPools(file: Int16Array) {
-  const count = file[0];
-  return { paper: file.subarray(1, 1 + count * 3), dark: file.subarray(1 + count * 3, 1 + count * 6) };
+  const [count, aspect] = file;
+  return {
+    paper: file.subarray(2, 2 + count * 4),
+    dark: file.subarray(2 + count * 4, 2 + count * 8),
+    /** Half the photo's width in shape units (its height is always 2) */
+    halfWidth: aspect / 10000,
+  };
 }
 
 /** 1 — About: the initials, sampled from rendered type. */

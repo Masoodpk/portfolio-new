@@ -87,7 +87,7 @@ const vertexShader = /* glsl */ `
     // Portrait: one dot per photo pixel (as in Codrops' demo), sized by its
     // tone with a random spread, so the face reads through the gaps between
     // dots. Shade 0 marks spare particles, which stay hidden on the face.
-    float dot = step(0.01, aShade) * (0.3 + aShade) * (0.45 + aRand.w * 1.0);
+    float dot = step(0.01, aShade) * (0.12 + aShade * 1.15) * (0.6 + aRand.w * 0.8);
     float portraitSize = mix(1.0, dot * uPortraitDot, face) * (1.0 + touch * 0.5);
 
     // Skills stage: the focused category's cluster grows, the rest recede.
@@ -136,7 +136,7 @@ const fragmentShader = /* glsl */ `
     // parts of the photo (forehead, cheeks, nose) running to warm white.
     vec3 printed = mix(uInk, uColor, 0.18);
     // Dark theme: white particles whose brightness is the photo's brightness.
-    vec3 lit = uInk * mix(0.3, 1.1, vShade);
+    vec3 lit = uInk * mix(0.2, 1.1, vShade);
     vec3 color = mix(accent, mix(printed, lit, uDark), vFace);
     // Particles stirred by the cursor flare: into colour on paper, toward
     // white on dark (where the face is already in colour).
@@ -301,7 +301,7 @@ export class ParticleWorld {
       uInk: { value: new Color(options.theme.ink) },
       uDark: { value: options.theme.dark ? 1 : 0 },
       // Phones draw the portrait smaller, so its dots shrink to keep the gaps.
-      uPortraitDot: { value: options.compact ? 1.4 : 1.8 },
+      uPortraitDot: { value: options.compact ? 1.1 : 1.2 },
       uFocusAmount: { value: 0 },
       uColor: { value: new Color(options.theme.color) },
       uColor2: { value: new Color(options.theme.color2) },

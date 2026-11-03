@@ -1,4 +1,4 @@
-import { getProject, projects } from "@/content/projects";
+import { getProject, projects } from "@/data/content";
 import { ogImage, ogSize } from "@/lib/og";
 
 export const alt = "Case study";

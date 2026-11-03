@@ -5,7 +5,7 @@ const valid = {
   name: "Aisha Rahman",
   email: "Aisha@Example.com ",
   company: "Acme",
-  message: "We are hiring a frontend developer in Dubai.",
+  message: "We are hiring a frontend developer for our product team.",
   website: "",
 };
 

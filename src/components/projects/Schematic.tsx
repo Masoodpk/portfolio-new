@@ -1,4 +1,4 @@
-import type { SchematicKind } from "@/content/projects";
+import type { SchematicKind } from "@/data/content";
 
 /**
  * Simplified, hand-drawn-in-code interface schematics. They illustrate feature
@@ -25,10 +25,10 @@ function Sidebar({ active }: { active: SchematicKind }) {
   const items: (SchematicKind | null)[] = ["dashboard", "campaigns", "inbox", null, null];
   return (
     <div className="flex w-[13%] flex-col gap-[6%] border-r border-line bg-paper-deep px-[2.5%] py-[4%]">
-      <div className="mb-[8%] h-[4%] w-1/2 rounded-[2px] bg-cobalt" />
+      <div className="mb-[8%] h-[4%] w-1/2 rounded-[2px] bg-accent" />
       {items.map((item, i) => (
         <div key={i} className="flex items-center gap-[10%]">
-          <div className={`aspect-square w-[18%] rounded-[2px] ${item === active ? "bg-cobalt" : "bg-line-strong"}`} />
+          <div className={`aspect-square w-[18%] rounded-[2px] ${item === active ? "bg-accent" : "bg-line-strong"}`} />
           <div className={`h-[0.35rem] flex-1 ${item === active ? "rounded-[2px] bg-ink/70" : bar}`} />
         </div>
       ))}
@@ -54,12 +54,12 @@ function Dashboard() {
       {[0, 1, 2, 3].map((i) => (
         <div key={i} className="flex flex-col justify-between gap-2 border border-line bg-paper p-[8%]">
           <div className={`h-[0.3rem] w-1/2 ${bar}`} />
-          <div className={`h-[0.7rem] w-3/4 ${i === 0 ? "rounded-[2px] bg-cobalt" : barStrong}`} />
+          <div className={`h-[0.7rem] w-3/4 ${i === 0 ? "rounded-[2px] bg-accent" : barStrong}`} />
         </div>
       ))}
       <div className="col-span-3 border border-line bg-paper p-[3%]">
         <svg viewBox="0 0 300 100" preserveAspectRatio="none" className="size-full">
-          <path d="M0 80 L40 70 L80 74 L120 50 L160 56 L200 34 L240 40 L300 18" fill="none" className="stroke-cobalt" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <path d="M0 80 L40 70 L80 74 L120 50 L160 56 L200 34 L240 40 L300 18" fill="none" className="stroke-accent" strokeWidth="2" vectorEffect="non-scaling-stroke" />
           <path d="M0 90 L40 86 L80 88 L120 76 L160 80 L200 66 L240 70 L300 58" fill="none" className="stroke-line-strong" strokeWidth="2" vectorEffect="non-scaling-stroke" />
         </svg>
       </div>
@@ -74,7 +74,7 @@ function Dashboard() {
             <div className="aspect-square w-[1.5%] rounded-full bg-line-strong" />
             <div className={`h-[0.3rem] w-[25%] ${bar}`} />
             <div className={`h-[0.3rem] w-[15%] ${bar}`} />
-            <div className={`ml-auto h-[0.3rem] w-[8%] ${i === 1 ? "rounded-[2px] bg-cobalt/70" : barStrong}`} />
+            <div className={`ml-auto h-[0.3rem] w-[8%] ${i === 1 ? "rounded-[2px] bg-accent/70" : barStrong}`} />
           </div>
         ))}
       </div>
@@ -89,11 +89,11 @@ function Campaigns() {
       <div className="flex flex-col gap-[4%] border border-line bg-paper p-[3%]">
         <div className="flex items-center justify-between">
           <div className={`h-[0.4rem] w-1/3 ${barStrong}`} />
-          <div className="h-[0.9rem] w-[18%] rounded-[2px] bg-cobalt" />
+          <div className="h-[0.9rem] w-[18%] rounded-[2px] bg-accent" />
         </div>
         {channels.map((channel, i) => (
           <div key={i} className="flex items-center gap-[4%] border-t border-line pt-[3%]">
-            <div className={`size-[0.45rem] shrink-0 rounded-full ${i === 0 ? "bg-cobalt" : "bg-line-strong"}`} />
+            <div className={`size-[0.45rem] shrink-0 rounded-full ${i === 0 ? "bg-accent" : "bg-line-strong"}`} />
             <div className={`h-[0.3rem] w-[38%] ${bar}`} />
             <span className="ml-auto font-semibold uppercase tracking-[0.12em] border border-line px-1.5 py-0.5 text-[0.5rem] leading-none text-muted">
               {channel}
@@ -105,7 +105,7 @@ function Campaigns() {
         <div className="flex items-center gap-[6%]">
           {[0, 1, 2].map((i) => (
             <div key={i} className="flex flex-1 items-center gap-[8%]">
-              <div className={`aspect-square w-[22%] rounded-full ${i === 0 ? "bg-cobalt" : "border border-line-strong"}`} />
+              <div className={`aspect-square w-[22%] rounded-full ${i === 0 ? "bg-accent" : "border border-line-strong"}`} />
               <div className={`h-[0.25rem] flex-1 ${i === 0 ? "rounded-[2px] bg-ink/60" : bar}`} />
             </div>
           ))}
@@ -134,7 +134,7 @@ function Inbox() {
               <div className={`h-[0.3rem] w-2/3 ${i === 1 ? "rounded-[2px] bg-ink/70" : barStrong}`} />
               <div className={`h-[0.25rem] w-full ${bar}`} />
             </div>
-            {i < 2 ? <div className="size-[0.4rem] shrink-0 rounded-full bg-cobalt" /> : null}
+            {i < 2 ? <div className="size-[0.4rem] shrink-0 rounded-full bg-accent" /> : null}
           </div>
         ))}
       </div>
@@ -148,14 +148,14 @@ function Inbox() {
           ].map((m, i) => (
             <div
               key={i}
-              className={`h-[11%] rounded-[3px] ${m.mine ? "self-end bg-cobalt/80" : "self-start bg-line-strong"}`}
+              className={`h-[11%] rounded-[3px] ${m.mine ? "self-end bg-accent/80" : "self-start bg-line-strong"}`}
               style={{ width: m.w }}
             />
           ))}
         </div>
         <div className="mt-[5%] flex items-center gap-[3%] border border-line p-[2.5%]">
           <div className={`h-[0.3rem] flex-1 ${bar}`} />
-          <div className="h-[0.9rem] w-[12%] rounded-[2px] bg-cobalt" />
+          <div className="h-[0.9rem] w-[12%] rounded-[2px] bg-accent" />
         </div>
       </div>
     </div>

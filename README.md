@@ -1,38 +1,105 @@
 # Masood PK — Portfolio
 
-Interactive portfolio of **Masood PK**, Software Developer (Vue.js, Nuxt.js, React, Next.js).
-The theme is **"Kerala to the world"**: an editorial paper-and-ink layout with one cobalt accent,
-and a single particle world behind the page that changes shape as you scroll, from Masood's
-portrait in particles to a globe with flight paths from Kerala to the Gulf. Everything a recruiter needs (who, what,
-experience, stack, projects, CV, contact) is readable in the first screen and works without WebGL.
+Portfolio of **Masood PK**, Software Developer (Vue.js, Nuxt.js, React, Next.js), from Kozhikode, Kerala.
+The whole site is **a hand-painted 3D rainforest** in the misty Western Ghats. Scrolling flies a camera through
+it like a slow drone shot inside a moving painting, and the portfolio's chapters appear as the camera reaches each
+place.
 
-## Highlights
+> **Status: all 5 stages done (painted).** The painterly look, the Ghats, the giant 3D name and the opening push
+> (1); the flight over the name, gorge and canopy dive, About on painted paper (2); the ancient banyan with glowing
+> skill pods, the painted river and the projects as framed canvases on the bank (3); the waterfall with the journey
+> carved into the cliff, and the light moving from misty morning to monsoon night (4); the painted-leaf loader,
+> the forest's sound, phone tuning, painted stills for reduced motion and no WebGL, and new share cards and
+> icons (5).
 
-- **One particle world, six shapes:** 32,000 points (14,000 on phones) morph per section: Masood’s portrait as a 3D point cloud (hero; it turns toward the cursor, and the cursor leaves a trail that lifts the points and flares them) → "MPK" initials (About) → a winding road (Career) → five skill clusters (Toolkit) → a wave field (Work) → a real dotted globe with arcs from Kozhikode to Dubai, Abu Dhabi, Riyadh, Jeddah, Doha, Muscat and Manama (Contact).
-- **Scroll storytelling in CSS:** masked line reveals, a lead paragraph that inks in word by word, parallax and a pinned sideways "road trip" through the career stops, all with CSS scroll-driven animations.
-- **Light and dark themes:** follows the system setting on a first visit, remembers the visitor's choice, and switches with a circular reveal from the toggle. The particle world glows in dark mode.
-- **First-visit loader:** the site icon's arc draws from Kozhikode to a ring while a counter runs to 100, then the sheet lifts away. Once per visit, CSS only, never for reduced motion, and the hero is painted underneath so it doesn't slow the page.
-- **Recruiter-first:** CV download in the header, hero and contact section; current role first; case-study pages at `/projects/<slug>`.
-- **Honest skills:** each skill is marked *used at work* or *studied & personal projects*, with a one-line note. No percentages. Picking a category spotlights its particle cluster.
-- **Contact form** with shared validation, a honeypot, rate limiting and a mailto fallback.
-- **Performance:** three.js loads only after the page is idle and never for reduced motion or Data Saver; the first paint is plain HTML and CSS.
-- **Accessibility:** WCAG 2.2 AA (axe-core in the test suite), keyboard navigation, a skip link and reduced-motion fallbacks for every animation.
-- **SEO:** metadata, canonical URLs, Open Graph cards, JSON-LD (`Person`, `ProfilePage`, `WebSite`, `BreadcrumbList`), sitemap and robots.
+**Time of day:** the light follows the scroll through four moods (morning → golden afternoon → sunset → monsoon
+night). Each mood is one palette in `src/components/world/daylight.ts` (sky, sun, ambient light, fog, water, mist);
+change a colour there, or move where a mood is reached in `moodScrolls()`.
+
+**Loading, sound and fallbacks:**
+
+- **Loader** (`components/world/Loader.tsx`): a leaf is drawn as the forest loads (scene code, canvas, the 3D
+  name's font, the first frames; milestones reported through `lib/worldState.ts`), then opens and fades. Without
+  JavaScript it fades out on a CSS timer, and it never waits longer than 15 s.
+- **Sound** (`lib/forestSound.ts`, toggle in the header): synthesised live with Web Audio, no audio files: wind in
+  the canopy, the river and the falls by day, crickets and monsoon rain at night.
+  The mix follows the scroll. Off until the visitor turns it on.
+- **Stills** (`components/world/Stills.tsx`): without WebGL, or with reduced motion, each chapter shows a painted
+  still of the forest (landscape and portrait, `public/stills/`) that crossfades as you scroll, instead of the
+  flight. Re-paint them after changing the world: `npm run stills` (see Scripts).
+- **Phones:** lighter forest detail, and long panels scroll through the middle of their chapter instead of
+  staying pinned, so the forest gets the screen before and after each one.
+
+## The art style
+
+Everything is meant to look painted rather than rendered:
+
+- **Brush strokes in the materials** (`components/world/shaders.ts`, `paint()`): a procedurally painted stroke
+  texture is projected onto every surface in world space. It varies the colour like gouache and nudges the
+  normals so light breaks into strokes.
+- **Kuwahara paint filter** (`components/fx/KuwaharaEffect.ts`): a post-process that turns pixels into patches of
+  paint while keeping edges; its sampling grid turns across the image so strokes run in different directions.
+- **Paper** (`components/fx/PaperGrain.ts`): grading (cool shadows, warm highlights), paper tooth, fibres, grain and
+  a vignette.
+- **Painted fog** (`components/fx/PaintedFog.ts`): distance + height fog; valleys hold mist and far ranges fade to
+  sky blue. Painted mist sheets (`world/Mist.tsx`) drift between the layers.
+- **Depth of field** on capable GPUs, focused where the camera looks.
+- **The Ghats** (`lib/geography.ts`, `world/Terrain.tsx`): broad ridgelines from ridged noise rising north of an
+  irregular escarpment; shola forest painted into the valleys and folds, pale grassland on the crests and mossy rock
+  on the steepest faces.
+- **The forest** (`world/Canopy.tsx`, `world/Understory.tsx`, `world/foliageCards.ts`, `world/foliage.ts`): trees
+  built from painted cards (a canvas atlas of needle sprays, leaf clusters, fern fronds and grass, cut out by
+  alpha): broadleaf trees with leafy crowns on buttressed trunks, tiered evergreens (whorls of drooping sprays,
+  more of them on higher ground), wide umbrella emergents, lianas, palms along the river, and a forest floor of
+  ferns (some dried to bronze), grass tufts, broad-leaved plants, wildflowers, mossy rocks, logs and mushrooms
+  wherever the camera flies low. Cards carry "volume" normals so a crown is lit as a whole. All instanced.
+- **The mountains** (`lib/geography.ts`, `world/shaders.ts`, `world/Mist.tsx`): ridged peaks with gullies carved
+  down their flanks; green slopes with bare rock in streaks, pale weathered rock on the high ridges, and cloud
+  caught on the highest summits.
+- **The flight** (`lib/cameraPath.ts`): the camera flies over the name and down the river into the gorge
+  (`GORGE` in `lib/geography.ts`), then on to the mouth of the gorge, curving left around the end of the left wall
+  and down along the bank into the forest.
+- **The canopy dive** (`world/CanopyDive.tsx`): giant leaves hung beside the descent sweep past the lens; soft
+  shafts of sunlight and drifting pollen fill the About clearing.
+- **The ancient tree** (`world/GiantTree.tsx`, `world/SkillPods.tsx`): a banyan of twisted trunks, buttress roots,
+  great branches, a layered crown, aerial roots and orchids, alone in its glade (`GIANT_TREE` in `lib/scenes.ts`).
+  Each skill is a glowing seed pod hung where the camera looks at its moment in the chapter; it lights and its
+  serif label appears as the camera passes. Two butterflies circle the trunk.
+- **The river** (`world/River.tsx`, `world/ProjectCanvases.tsx`): painted water (deep channel, jade shallows, the
+  banks' green and the sky softly reflected, brush strokes drifting downstream, foam on the banks and around
+  rocks). Each project is a large framed canvas on a rock by the water, with its picture painted on. Hovering a
+  project card tilts its canvas and sends ripples across the river (`projectHover` in `lib/scenes.ts`).
+- **Wildlife** (`world/Wildlife.tsx`): Western Ghats butterflies flapping on looping paths, rabbits hopping about and
+  Malabar giant squirrels dashing between pauses.
+- **No flying through trees:** `lib/forest.ts` samples the camera's whole flight path; nothing is planted where it
+  would touch it, so the camera always passes through natural clearings.
+- Palette: jungle `#1E3B2C` `#2F5A3C`, moss `#7FA650`, lime `#C5D86D`, ochre `#D9B26A`, sky `#BFD9DE` → `#6FA3C8`,
+  orchid `#E39BB0`, flame red `#C8452F`, ochre `#F2C14E`.
+
+## The journey
+
+| # | Chapter | Place | Camera |
+| --- | --- | --- | --- |
+| 1 | Home | The misty Ghats | A wide view north to the peaks; the 3D name faces the camera, then the camera pushes past it as it turns and slides away |
+| 2 | Flight | The flight | Over the name and down the river into the gorge |
+| 3 | About | Through the canopy | Dives into the trees and settles under the leaves |
+| 4 | Skills | The ancient tree | Spirals up around a giant tree |
+| 5 | Projects | The river | Flies low over the water, upstream |
+| 6 | Journey | The waterfall | Approaches the falls and rises alongside them |
+| 7 | Contact | Monsoon night | The forest floor, then the final pull back to a wide view of the whole forest |
 
 ## Tech stack
 
 | Area | Choice |
 | --- | --- |
-| Framework | Next.js 16 (App Router, Cache Components, Turbopack), React 19, TypeScript |
-| Styling | Tailwind CSS v4 with design tokens in `src/app/globals.css` |
-| 3D | three.js (one `Points` mesh with a custom shader; globe land data pre-computed from Natural Earth) |
-| Motion | CSS scroll-driven animations, Lenis smooth scrolling (fine pointers only) |
-| Icons | lucide-react |
+| Framework | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4 |
+| 3D | Three.js via React Three Fiber + drei + @react-three/postprocessing; custom GLSL for paint, fog, water and wind |
+| Motion | Lenis smooth scrolling (lerp 0.06, wheel × 0.8) on GSAP's ticker; GSAP ScrollTrigger for the panels |
 | Email | Resend HTTP API (optional) |
 | Tests | Vitest (unit) and Playwright + axe-core (end-to-end, accessibility, SEO) |
 
-Fonts: Instrument Serif (display) and Manrope (body), self-hosted via `next/font`.
-Colours: light — paper `#F4F1EA`, ink `#131313`, cobalt `#2340FF`, violet `#8A2BE2`; dark — paper `#0C0D14`, ink `#ECEAE4`, cobalt `#8B97FF`, violet `#C99BFF`. Tokens live in `src/app/globals.css`; components only use role names (paper, ink, cobalt…), so both themes come for free.
+Fonts: Cormorant Garamond (headings and the 3D name; `npm run typeface` converts it for three.js) and DM Sans
+(body), self-hosted via `next/font`.
 
 ## Getting started
 
@@ -54,10 +121,10 @@ npm run dev                  # http://localhost:3000
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:e2e` | End-to-end, accessibility and SEO tests (Playwright with your local Chrome; serves the last production build) |
 | `npm run shots` | Re-capture project screenshots from the live sites |
-| `npm run og` | Re-render the Open Graph share cards into `assets-src/og/` (uses local Chrome) |
-| `npm run icons` | Re-draw the favicon, Apple touch icon and PWA icons |
-| `npm run globe` | Rebuild the globe's land points (`public/data/land-points.bin`) |
-| `npm run portrait` | Rebuild the hero's particle portrait from `src/assets/masood-pk.png` (`public/data/portrait-points.bin`) |
+| `npm run typeface` | Convert Cormorant Garamond into the typeface JSON for the 3D name (`public/fonts/`) |
+| `npm run stills` | Paint the chapter stills (`public/stills/`, plus PNGs in `assets-src/stills/` for the share cards) from the running site: `npm run build && npx next start -p 3100` first, or set `BASE_URL` |
+| `npm run og` | Re-render the Open Graph share cards into `assets-src/og/` from the stills (uses local Chrome) |
+| `npm run icons` | Re-draw the favicon, Apple touch icon and PWA icons (the leaf on forest green) |
 
 To run end-to-end tests against a fresh production build:
 
@@ -73,55 +140,59 @@ src/
   app/                    Routes, metadata, sitemap/robots/manifest, OG images, /api/contact
     projects/[slug]/      Case-study pages (statically generated)
   components/
-    layout/               Header (nav, mobile menu), footer, skip link, smooth scroll
-    sections/             Hero, About, Experience, Skills, Projects, Contact
-    projects/             Project visuals and Easify interface schematics
-    world/                Particle world: shapes, stage layouts, shader, canvas wiring, journey rail
-    ui/ seo/              Browser frame, JSON-LD
-  content/                ← all personal data lives here
-  lib/                    Site config, structured data, contact validation, OG cards
-  proxy.ts                Real 404s for unknown case studies
-assets-src/               OG fonts and pre-rendered share cards — not served directly
-public/                   CV, images, icons, globe land points
-scripts/                  Screenshots, OG cards, icons, globe data
+    world/                The 3D world: Scene, CameraRig, Terrain, Mountains, Canopy, Understory, foliage, River,
+                          Waterfall, JourneyLedges, NightForest (rain, fireflies, fungi), Mist, Sky, daylight
+                          (time of day), Name3D, Effects, shaders (paint)
+    fx/                   KuwaharaEffect, PaperGrain, PaintedFog
+    ui/                   Nav, ChapterMarkers, ChapterPanel (masked line reveals: data-reveal), CopyEmail
+    layout/               Smooth scroll (Lenis), skip link
+    sections/             Contact form
+    projects/ ui/ seo/    Project visuals, browser frame, JSON-LD
+  data/content.ts         ← all text lives here (name, bio, skills, projects, career, links, chapters)
+  lib/
+    cameraPath.ts         ← every camera shot of the journey (easy to tweak)
+    geography.ts          The world's shape: terrain height, the river's course, tree placement
+    journey.ts            Scroll ↔ camera bookkeeping, smooth scroll handle, chapter links
+    forest.ts             Clearings along the camera's path; where the understory grows
+    site.ts, structured-data.ts, contact.ts, og.ts
+public/                   CV, images, icons
 tests/unit, tests/e2e     Vitest and Playwright suites
-docs/SEO.md               Search Console, analytics and SEO notes
 ```
 
 ## Updating content
 
-All text comes from **`src/content/`**, so you never need to touch a component to update facts.
+All text comes from **`src/data/content.ts`**: name, title, tagline and links (`profile`), the About text
+(`about`), career (`timeline`), skills, projects and the journey's `chapters`.
 
-| File | Contains |
-| --- | --- |
-| `profile.ts` | Name, title, email, location, availability, headline, About text, social links, CV path |
-| `experience.ts` | Career timeline (jobs, education, certification) |
-| `skills.ts` | Skills, category, `usage: "professional" \| "learning"`, one-line note and related skills |
-| `projects.ts` | Projects and case studies (role, contributions, approach, visuals, links) |
-| `navigation.ts` | Header navigation order |
+**Add a project:** append an object to `projects`. Its `slug` becomes `/projects/<slug>` and it's added to the
+sitemap and home page automatically. Put images in `public/images/projects/<slug>/` (WebP) and reference them in
+`visuals`; the first visual is the cover.
 
-**Add a project:** append an object to `projects` in `src/content/projects.ts`. Its `slug`
-becomes `/projects/<slug>`, and it's added to the sitemap and home page automatically (run `npm run og` for its share card).
-Put images in `public/images/projects/<slug>/` (WebP, about 2000px wide for desktop shots) and
-reference them in `visuals`. The first visual is used as the cover.
+**Replace the CV:** overwrite `public/cv/Masood-PK-Software-Developer-CV.pdf` (or change `profile.cv`).
 
-**Replace the CV:** overwrite `public/cv/Masood-PK-Software-Developer-CV.pdf` (or change
-`profile.cv` if you rename it). Use a text-based, searchable PDF.
+**Replace the portrait:** replace `src/assets/masood-pk.png` and `public/images/masood-pk.jpg`.
 
-**Replace the portrait:** replace `src/assets/masood-pk.png` (used on the page) and
-`public/images/masood-pk.jpg` (used in structured data), then run `npm run portrait` to rebuild the particle face.
+**3D models:** none. The whole world is built in code.
 
-## The particle world
+## The camera (tweaking the film)
 
-`src/components/world/` holds the whole 3D layer:
-
-- `shapes.ts` generates each shape as the same number of points (portrait, initials, road, clusters, wave, globe). The portrait comes from `scripts/build-portrait-points.mjs`, which samples the photo like Codrops' *Interactive Particles*: more points where it's darker (light theme) or lighter (dark theme), plus extra on edges so the features read.
-- `stages.ts` sets where each shape sits per section (position, scale, tilt, spin, opacity, facing), with phone overrides.
-- `ParticleWorld.ts` is the renderer: one shader blends between neighbouring shapes as the stage changes.
-- `WorldCanvas.tsx` loads it when the browser is idle and maps scroll to a stage. Each section opts in with `data-world-stage="N"`; `data-world-hold` sets how far through the section the next morph starts.
-
-It never loads for reduced-motion or Data Saver users; the page then shows a static dotted globe
-(`StaticGlobe.tsx`) and every scroll animation falls back to its finished state.
+- **Shots:** `src/lib/cameraPath.ts` lists every shot in flight order: where the camera is (`position`), what it
+  looks at (`target`), its lens (`fov`) and when it happens (`at`, a moment within its chapter's section).
+  Two Catmull-Rom curves run through all positions and all targets.
+- **Timing:** each chapter is a `ChapterPanel` in `src/app/page.tsx`; its `length` (in screen heights) sets how
+  long that leg of the flight takes. Taller = slower.
+- **Feel:** `src/components/world/CameraRig.tsx` eases between shots (so the camera lingers at each), damps toward
+  the target every frame (`DAMPING = 0.06`; lower is heavier), banks into turns like a drone (`BANK`, `MAX_BANK`)
+  and adds a little mouse parallax (`PARALLAX`). Portrait screens get a wider lens. With reduced motion the
+  live scene is replaced by the crossfading stills.
+- **The name:** `NAME` in `cameraPath.ts` places the 3D title. It opens as flat white type over the mountains
+  ("Scroll to start"); as the visitor scrolls it gains its depth and bevel (`Name3D.tsx`) while the camera pushes
+  in and flies over it.
+- **The world:** `src/lib/geography.ts` shapes the terrain, the river's course (`river`), the cliff and plateau
+  (`WORLD`) and where trees grow. Shots use `overRiver()` / `overGround()` so they stay on the map if you move
+  the river.
+- **Quality:** `Scene.tsx` sets forest detail per device, and drei's `PerformanceMonitor` moves between three
+  tiers while it runs (resolution, Kuwahara radius, depth of field; see `Effects.tsx`).
 
 ## Environment variables
 
@@ -167,4 +238,3 @@ with the same environment variables.
 ## License
 
 Code and personal content: all rights reserved © Masood PK. Fonts are licensed under the SIL Open Font License.
-Globe land data: Natural Earth (public domain) via `world-atlas`.

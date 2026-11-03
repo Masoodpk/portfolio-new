@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { projects } from "@/content/projects";
+import { projects } from "@/data/content";
 
 const slugs = new Set(projects.map((project) => project.slug));
 

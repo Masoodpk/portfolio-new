@@ -1,7 +1,7 @@
-import { profile } from "@/content/profile";
-import { timeline } from "@/content/experience";
-import { skills } from "@/content/skills";
-import type { Project } from "@/content/projects";
+import { profile } from "@/data/content";
+import { timeline } from "@/data/content";
+import { skills } from "@/data/content";
+import type { Project } from "@/data/content";
 import { absoluteUrl, seo, siteUrl } from "@/lib/site";
 
 /**

@@ -1,7 +1,7 @@
-import { profile } from "@/content/profile";
+import { profile } from "@/data/content";
 import { ogImage, ogSize } from "@/lib/og";
 
-export const alt = `${profile.name} — ${profile.title}. From Kerala to the world.`;
+export const alt = `${profile.name} — ${profile.title}. Building digital experiences.`;
 export const size = ogSize;
 export const contentType = "image/png";
 

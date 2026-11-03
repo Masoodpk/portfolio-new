@@ -1,25 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Manrope } from "next/font/google";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { Loader } from "@/components/layout/Loader";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { SkipLink } from "@/components/layout/SkipLink";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
-import { WorldCanvas } from "@/components/world/WorldCanvas";
-import { profile } from "@/content/profile";
+import { World } from "@/components/world/World";
+import { Nav } from "@/components/ui/Nav";
+import { profile } from "@/data/content";
 import { seo, siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const instrument = Instrument_Serif({
-  variable: "--font-instrument",
+/** An elegant, high-contrast serif for headings (the 3D name uses it too). */
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   display: "swap",
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
 });
@@ -55,43 +54,22 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f1ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0d14" },
-  ],
-  colorScheme: "light dark",
+  themeColor: "#1e3b2c",
+  colorScheme: "dark",
 };
-
-/**
- * Runs before first paint: applies the saved (or system) theme so there is
- * no flash, and turns the loader on for the first page of a visit.
- */
-const bootScript = `(function(){var d=document.documentElement,m=function(q){return window.matchMedia(q).matches};
-try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark")t=m("(prefers-color-scheme: dark)")?"dark":"light";d.dataset.theme=t}catch(e){d.dataset.theme="light"}
-try{if(!sessionStorage.getItem("visited")&&!m("(prefers-reduced-motion: reduce)")){sessionStorage.setItem("visited","1");d.dataset.loader="on";setTimeout(function(){delete d.dataset.loader},2500)}}catch(e){}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${instrument.variable} ${manrope.variable} antialiased`}
-      // The boot script sets data-theme / data-loader before React hydrates.
-      suppressHydrationWarning
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
-      </head>
+    <html lang="en" className={`${cormorant.variable} ${dmSans.variable} antialiased`}>
       {/* Browser extensions (e.g. ColorZilla) add attributes to <body> before hydration. */}
       <body className="flex min-h-dvh flex-col text-ink" suppressHydrationWarning>
-        <Loader />
         <SkipLink />
         <SmoothScroll />
-        <WorldCanvas />
-        <SiteHeader />
-        <main id="main" className="relative z-10 flex-1">
+        <World />
+        <Nav />
+        <main id="main" className="relative flex-1">
           {children}
         </main>
-        <SiteFooter />
       </body>
     </html>
   );

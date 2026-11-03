@@ -10,7 +10,7 @@ import {
   type ContactField,
   type ContactResponse,
 } from "@/lib/contact";
-import { profile } from "@/content/profile";
+import { profile } from "@/data/content";
 
 type Status = "idle" | "sending" | "sent" | "error" | "unavailable";
 
@@ -68,17 +68,17 @@ export function ContactForm() {
   if (status === "sent") {
     return (
       <div role="status" className="flex h-full flex-col justify-center py-4">
-        <span className="flex size-12 items-center justify-center rounded-full bg-cobalt text-paper" aria-hidden="true">
+        <span className="flex size-12 items-center justify-center rounded-full bg-leaf text-jungle" aria-hidden="true">
           <Check className="size-6" />
         </span>
-        <h4 className="font-display mt-6 text-5xl">Message sent.</h4>
+        <h4 className="font-display mt-6 text-5xl text-ink">Message sent.</h4>
         <p className="mt-3 max-w-[40ch] leading-relaxed text-ink-soft">
           Thank you for reaching out — I&apos;ll reply to the email address you provided.
         </p>
         <button
           type="button"
           onClick={() => setStatus("idle")}
-          className="mt-8 self-start text-sm font-semibold text-ink underline underline-offset-4 hover:text-cobalt"
+          className="link-line mt-8 self-start text-sm text-ink"
         >
           Send another message
         </button>
@@ -157,7 +157,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="group/send inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-cobalt px-7 text-sm font-semibold text-paper transition-colors hover:bg-cobalt-deep disabled:cursor-progress disabled:opacity-70"
+          className="group/send btn btn--solid disabled:cursor-progress disabled:opacity-70"
         >
           {status === "sending" ? (
             <>
@@ -176,12 +176,12 @@ export function ContactForm() {
 
       <div aria-live="assertive" className="empty:hidden">
         {status === "error" || status === "unavailable" ? (
-          <p role="alert" className="border-l-2 border-cobalt pl-4 text-sm leading-relaxed text-ink-soft">
+          <p role="alert" className="rounded-2xl bg-blush/20 p-4 text-sm leading-relaxed text-ink ring-1 ring-line-strong">
             {status === "unavailable"
               ? "The form isn't connected to email yet. "
               : "Something went wrong sending your message. "}
             Please email me directly at{" "}
-            <a href={`mailto:${profile.email}`} className="font-semibold text-ink underline underline-offset-4 hover:text-cobalt">
+            <a href={`mailto:${profile.email}`} className="font-medium text-ink underline underline-offset-4 hover:text-accent">
               {profile.email}
             </a>
             .
@@ -211,17 +211,17 @@ function Field({ name, label, error, hint, optional, multiline, type = "text", .
   const id = useId();
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   const control =
-    "w-full border-b bg-transparent py-3 text-lg text-ink outline-none transition-colors focus:border-cobalt " +
+    "mt-2 w-full rounded-2xl border bg-paper/60 px-4 py-3 text-base text-ink outline-none transition-[border-color,box-shadow] duration-500 placeholder:text-muted focus:border-ink focus:shadow-[0_0_0_4px_var(--color-line)] " +
     (error ? "border-danger" : "border-line-strong");
 
   return (
     <div className="flex flex-col">
-      <label htmlFor={id} className="eyebrow flex justify-between text-muted">
+      <label htmlFor={id} className="eyebrow flex justify-between text-ink-soft">
         <span>
           {label}
-          {optional ? null : <span aria-hidden="true" className="text-cobalt"> *</span>}
+          {optional ? null : <span aria-hidden="true" className="text-accent"> *</span>}
         </span>
-        {optional ? <span className="normal-case tracking-normal">Optional</span> : null}
+        {optional ? <span className="normal-case tracking-normal text-muted">Optional</span> : null}
       </label>
       {multiline ? (
         <textarea
@@ -252,7 +252,7 @@ function Field({ name, label, error, hint, optional, multiline, type = "text", .
         </p>
       ) : null}
       {error ? (
-        <p id={`${id}-error`} className="mt-2 text-xs font-semibold text-danger">
+        <p id={`${id}-error`} className="mt-2 text-xs font-medium text-danger">
           {error}
         </p>
       ) : null}

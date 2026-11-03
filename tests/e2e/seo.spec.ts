@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { projects } from "../../src/content/projects";
+import { projects } from "../../src/data/content";
 
 test.describe("seo", () => {
   test.skip(({ isMobile }) => isMobile, "Server output is identical across devices");

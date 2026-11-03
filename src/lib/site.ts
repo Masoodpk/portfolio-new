@@ -1,4 +1,4 @@
-import { profile } from "@/content/profile";
+import { profile } from "@/data/content";
 
 /**
  * Absolute site URL used for canonical links, sitemap, Open Graph and JSON-LD.
@@ -28,9 +28,6 @@ export const seo = {
     "Next.js Developer",
     "TypeScript",
     "Software Developer India",
-    "Frontend Developer UAE",
-    "Frontend Developer Dubai",
-    "Software Developer Saudi Arabia",
     "Web Application Developer",
     "Portfolio",
   ],

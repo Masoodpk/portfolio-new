@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { skills } from "@/content/skills";
-import { projects } from "@/content/projects";
-import { navItems } from "@/content/navigation";
-import { skillCategories } from "@/content/skills";
-import { timeline } from "@/content/experience";
+import { chapters, projects, skillCategories, skills } from "@/data/content";
+import { SHOTS } from "@/lib/cameraPath";
 
 describe("content integrity", () => {
   it("has unique skill ids and only references existing skills", () => {
@@ -24,25 +21,23 @@ describe("content integrity", () => {
   });
 
   it("has unique navigation ids", () => {
-    const ids = navItems.map((n) => n.id);
+    const ids = chapters.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
 
 describe("design data", () => {
-  it("gives every skill a category that has a particle cluster", () => {
-    // The skills stage draws exactly five clusters, one per category, in order.
+  it("gives every skill one of the five categories", () => {
+    // Each category has its own ink in the Skills section.
     expect(skillCategories).toHaveLength(5);
     const ids = skillCategories.map((c) => c.id);
     for (const skill of skills) expect(ids).toContain(skill.category);
   });
 
-  it("places every located career stop on the map", () => {
-    for (const entry of timeline) {
-      if (!entry.location) continue;
-      expect(entry.coordinates, entry.id).toBeDefined();
-      expect(Math.abs(entry.coordinates!.lat)).toBeLessThanOrEqual(90);
-      expect(Math.abs(entry.coordinates!.lon)).toBeLessThanOrEqual(180);
-    }
+  it("gives every chapter at least one camera shot, in chapter order", () => {
+    const order = chapters.map((c) => c.id);
+    for (const id of order) expect(SHOTS.some((s) => s.chapter === id), id).toBe(true);
+    const sequence = SHOTS.map((s) => order.indexOf(s.chapter) + s.at / 10);
+    expect([...sequence].sort((a, b) => a - b)).toEqual(sequence);
   });
 });

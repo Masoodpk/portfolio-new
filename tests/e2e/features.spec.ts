@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { projects } from "../../src/content/projects";
+import { projects } from "../../src/data/content";
 
 test.describe("projects", () => {
   for (const project of projects) {
@@ -16,6 +16,8 @@ test.describe("projects", () => {
   }
 
   test("home cards open the case study", async ({ page }) => {
+    // Smooth scrolling off: Playwright jumps to elements, which Lenis would then glide past.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
     await page.getByRole("link", { name: /Read case study.*Easify/ }).click();
     await expect(page).toHaveURL(/\/projects\/easify$/);
@@ -29,6 +31,11 @@ test.describe("projects", () => {
 });
 
 test.describe("contact form", () => {
+  // Smooth scrolling off: Playwright jumps to elements, which Lenis would then glide past.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+  });
+
   test("validates required fields and focuses the first error", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Send message" }).click();
@@ -63,34 +70,56 @@ test.describe("contact form", () => {
 });
 
 test.describe("skills", () => {
-  test("highlights a category and labels how each skill was used", async ({ page }) => {
+  test("labels how each skill was used", async ({ page }) => {
     await page.goto("/");
-    const apis = page.getByRole("button", { name: "APIs", exact: true });
-    await apis.click();
-    await expect(apis).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "false");
-    await expect(page.locator("#skills")).toContainText("GraphQL, Studied & personal projects");
-    await apis.click();
-    await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#skills")).toContainText("GraphQL, studied & personal projects");
+    await expect(page.locator("#skills")).toContainText("Vue.js, used at work");
   });
 });
 
-test.describe("theme", () => {
-  test("switches between light and dark and remembers the choice", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "light" });
+test.describe("journey", () => {
+  test("has one section per chapter, in the order the camera flies", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await page.getByRole("button", { name: "Switch to dark theme" }).click();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await page.reload();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.getByRole("button", { name: "Switch to light theme" })).toBeVisible();
+    const order = await page.locator("[data-chapter]").evaluateAll((sections) => sections.map((s) => s.getAttribute("data-chapter")));
+    expect(order).toEqual(["home", "flight", "about", "skills", "projects", "experience", "contact"]);
   });
 
-  test("follows the system setting on a first visit", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark" });
+  test("draws the 3D world behind the page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(page.locator("canvas").first()).toBeAttached({ timeout: 15_000 });
+    // The 3D name is the visible title; the h1 remains for search and screen readers.
+    await expect(page.getByRole("heading", { level: 1, name: "Masood PK" })).toBeAttached();
+  });
+
+  test("with reduced motion the forest is shown as painted stills, not flown through", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await expect(page.locator(".world-layer img").first()).toHaveAttribute("src", "/stills/home.webp");
+    await expect(page.locator("canvas")).toHaveCount(0);
+    // The HTML title stands in for the 3D one
+    await expect(page.getByRole("heading", { level: 1, name: "Masood PK" })).toBeVisible();
+  });
+
+  test("the loader steps aside once the forest is ready", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".loader")).toHaveCount(0, { timeout: 20_000 });
+  });
+
+  test("the forest sound is off until turned on", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const toggle = page.getByRole("button", { name: "Forest sound" });
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("with reduced motion the content is shown without fades", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await expect(page.getByText("Scroll to start")).toBeVisible();
+    await page.locator("#contact").scrollIntoViewIfNeeded();
+    await expect(page.getByRole("heading", { name: /Let's build something together/ })).toBeVisible();
   });
 });
 
@@ -103,11 +132,12 @@ test.describe("downloads and links", () => {
 
   test("every in-page navigation link has a matching section", async ({ page }) => {
     await page.goto("/");
-    const hrefs = await page.locator('header nav[aria-label="Primary"] a').evaluateAll((links) =>
+    const hrefs = await page.locator('header nav[aria-label="Chapters"] a').evaluateAll((links) =>
       links.map((a) => a.getAttribute("href")),
     );
-    for (const href of hrefs) {
-      expect(await page.locator(href!).count()).toBe(1);
+    expect(hrefs.length).toBeGreaterThan(5);
+    for (const href of hrefs.filter((h) => h !== "/")) {
+      expect(await page.locator(href!.replace(/^\//, "")).count()).toBe(1);
     }
   });
 });
